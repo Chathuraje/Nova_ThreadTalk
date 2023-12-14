@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from markdown import markdown
 import re
 import re
-from utils.secrets import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
+from config.secrets import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 
 
@@ -131,8 +131,9 @@ def __get_top_reddit_comment(reddit, post_id: str):
         
         logger.info(f"Selected comment {comment.id} with body: {comments_body}")
         data.append({
-            "id": comment.id,
-            "body": comments_body
+            "comment_id": comment.id,
+            "body": comments_body,
+            "comment_url": comment.permalink
         })
         
         if len(data) == 10:
