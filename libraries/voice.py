@@ -2,7 +2,7 @@ from elevenlabs import Voice, VoiceSettings, generate, set_api_key, play
 from pathlib import Path
 from utils.log import setup_logger, get_logger
 from elevenlabs.api import User
-from config.secrets import ELEVENLABS_API_KEYS
+from config.config import ELEVENLABS_API_KEYS
 import re
 
 setup_logger()

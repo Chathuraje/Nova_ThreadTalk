@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 from playwright.sync_api import ViewportSize, sync_playwright
 from utils.log import setup_logger, get_logger
-from config.secrets import REDDIT_PASSWORD, REDDIT_USERNAME
-from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH, COMMENT_LIMIT
+from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH, COMMENT_LIMIT, REDDIT_PASSWORD, REDDIT_USERNAME
 
 setup_logger()
 logger = get_logger()

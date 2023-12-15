@@ -5,8 +5,7 @@ from bs4 import BeautifulSoup
 from markdown import markdown
 import re
 import re
-from config.secrets import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
-from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, POST_LIMIT_FOR_ONE_TIME
+from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, POST_LIMIT_FOR_ONE_TIME, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 
 
