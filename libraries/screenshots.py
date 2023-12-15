@@ -89,7 +89,7 @@ def __get_thread_screenshots(post, page):
         page.locator(
             "#SHORTCUT_FOCUSABLE_DIV > div:nth-child(7) > div > div > div > header > div > div._1m0iFpls1wkPZJVo38-LSh > button > i"
         ).click()  # Interest popup is showing, this code will close it
-    postcontentpath = f"storage/{reddit_id}/png/title.png"
+    postcontentpath = f"storage/{reddit_id}/image/title.png"
     try:
         page.locator('[data-test-id="post-content"]').screenshot(path=postcontentpath)
         logger.info(f"Post Title screenshot taken.")
@@ -111,7 +111,7 @@ def __get_comment_screenshots(post, page):
         try:
             image_name = f"{comment['comment_id']}.png"
             page.locator(f"#t1_{comment['comment_id']}").screenshot(
-                    path=f"storage/{reddit_id}/png/{image_name}"
+                    path=f"storage/{reddit_id}/image/{image_name}"
             )
             logger.info(f"Comment: {image_name} screenshot taken.")
             
@@ -126,12 +126,12 @@ def __get_comment_screenshots(post, page):
     return comment_list
 
 def get_screenshots_of_reddit_posts(reddit_post):
-    result_data = {} 
+    result_data = []
     
     for post in reddit_post:
         reddit_id = post['id']
         
-        Path(f"storage/{reddit_id}/png").mkdir(parents=True, exist_ok=True)
+        Path(f"storage/{reddit_id}/image").mkdir(parents=True, exist_ok=True)
         cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
 
         with sync_playwright() as p:
@@ -149,12 +149,12 @@ def get_screenshots_of_reddit_posts(reddit_post):
             comment_list = __get_comment_screenshots(post, page)
             
             data = {
-                'name': post_list['name'],
-                'text': post_list['text'],
-                'comment_data': comment_list
+                'id': reddit_id,
+                'title': post_list['text'],
+                'comments': comment_list
             }
 
-            result_data[reddit_id] = data
+            result_data.append(data)
         
             browser.close() # close browser instance when we are done using it
 

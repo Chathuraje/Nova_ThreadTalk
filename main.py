@@ -11,11 +11,11 @@ def __generate_short_video(subreddit):
     reddit_data = get_top_reddit_post(subreddit)
     
     logger.info("Downloading screenshots of reddit posts...")
-    selected_data = get_screenshots_of_reddit_posts(reddit_data)
+    selected_reddit_data = get_screenshots_of_reddit_posts(reddit_data)
     logger.info("Screenshots captured successfully!")
     
     logger.info("Generating voice...")
-    generate_voice(selected_data)
+    reddit_details = generate_voice(selected_reddit_data)
     logger.info("Generating voice completed!")
 
 

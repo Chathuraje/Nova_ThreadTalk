@@ -53,6 +53,8 @@ def __generate_audio(reddit_id, name, text):
         
 
 def generate_voice(reddit_data):
+    result_data = []
+    
     logger.info("ELEVENLABS: Connecting API")
     success = __set_api_key()
 
@@ -60,17 +62,29 @@ def generate_voice(reddit_data):
         logger.error("All API keys failed. Unable to set a valid API key.")
         exit()
         
-    for reddit_id, data in reddit_data.items():
+    for reddit_item in reddit_data:
+        reddit_id = reddit_item['id']
         
+        name = reddit_item['name']
+        title = reddit_item['title']
+        comments = reddit_item['comments']
+
         voice_folder = Path(f"storage/{reddit_id}/voice")
-        Path(voice_folder).mkdir(parents=True, exist_ok=True)
+        voice_folder.mkdir(parents=True, exist_ok=True)
+
+        __generate_audio(reddit_id, name, title)
+
+        # Loop through the comments list
+        for comment in comments:
+            comment_name = comment['name']
+            comment_text = comment['text']
+            __generate_audio(reddit_id, comment_name, comment_text)
+            
+        data = {
+            'id': reddit_id,
+            'title': reddit_item['text']
+        }
+
+        result_data.append(data)
         
-        name = data['name']
-        text = data['text']
-        __generate_audio(reddit_id, name, text)
-        
-        # Loop through the comment_data list
-        for comment in data['comment_data']:
-            name = comment['name']
-            text = comment['text']
-            __generate_audio(reddit_id, name, text)
+    return result_data
