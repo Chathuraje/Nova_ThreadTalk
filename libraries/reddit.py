@@ -6,7 +6,7 @@ from markdown import markdown
 import re
 import re
 from config.secrets import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
-from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS
+from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, POST_LIMIT_FOR_ONE_TIME
 from utils.log import setup_logger, get_logger
 
 
@@ -137,7 +137,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
             "comment_url": comment.permalink
         })
         
-        if len(data) == 15:
+        if len(data) == COMMENT_LIMIT:
             break
     
     return data
@@ -173,7 +173,7 @@ def get_top_reddit_post(subreddit: str):
             "comments": comment_data
         })
                 
-        if len(data) == 1:
+        if len(data) == POST_LIMIT_FOR_ONE_TIME:
             break
     
     return data

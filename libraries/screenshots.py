@@ -15,29 +15,33 @@ def __clear_cookie_by_name(context, cookie_cleared_name):
     context.add_cookies(filtered_cookies)
 
 def __login_to_reddit(page):
-    page.goto("https://www.reddit.com/login", timeout=0)
-    page.set_viewport_size(ViewportSize(width=1920, height=1080))
-    
-    page.wait_for_load_state()
-    
-    page.locator('[name="username"]').fill(REDDIT_USERNAME)
-    page.locator('[name="password"]').fill(REDDIT_PASSWORD)
-    page.locator("button[class$='m-full-width']").click()
-    page.wait_for_timeout(5000)
-    
-    login_error_div = page.locator(".AnimatedForm__errorMessage").first
-    if login_error_div.is_visible():
-        login_error_message = login_error_div.inner_text()
-        if login_error_message.strip() == "":
-            # The div element is empty, no error
-            pass
+    try:
+        page.goto("https://www.reddit.com/login", timeout=0)
+        page.set_viewport_size(ViewportSize(width=1920, height=1080))
+        
+        page.wait_for_load_state()
+        
+        page.locator('[name="username"]').fill(REDDIT_USERNAME)
+        page.locator('[name="password"]').fill(REDDIT_PASSWORD)
+        page.locator("button[class$='m-full-width']").click()
+        page.wait_for_timeout(5000)
+        
+        login_error_div = page.locator(".AnimatedForm__errorMessage").first
+        if login_error_div.is_visible():
+            login_error_message = login_error_div.inner_text()
+            if login_error_message.strip() == "":
+                # The div element is empty, no error
+                pass
+            else:
+                # The div contains an error message
+                logger.error("Your reddit credentials are incorrect! Please check your credentials and try again.")
+                exit()
         else:
-            # The div contains an error message
-            logger.error("Your reddit credentials are incorrect! Please check your credentials and try again.")
-            exit()
-    else:
-        logger.info("Login successful!")
-        pass
+            logger.info("Login successful!")
+            pass
+    except Exception as e:
+        logger.error(f"Error logging in to Reddit: {e}")
+        exit()
     
 def __launching_browser(cookie_file, p):
     browser = p.chromium.launch(
@@ -89,6 +93,8 @@ def __get_thread_screenshots(post, page):
     try:
         page.locator('[data-test-id="post-content"]').screenshot(path=postcontentpath)
         logger.info(f"Post Title screenshot taken.")
+        return {"name" : "title", "text" : post['title']}
+    
     except Exception as e:
         logger.error('Error taking screenshot of post content: ' + str(e))
         exit()
@@ -96,25 +102,33 @@ def __get_thread_screenshots(post, page):
 def __get_comment_screenshots(post, page):
     reddit_id = post['id']
     screenshot_num = 1
+    comment_list = []
     
     for idx, comment in enumerate(post['comments']):
         if page.locator('[data-testid="content-gate"]').is_visible():
             page.locator('[data-testid="content-gate"] button').click()
         page.goto(f'https://reddit.com{comment["comment_url"]}', timeout=0)
         try:
+            image_name = f"{comment['comment_id']}.png"
             page.locator(f"#t1_{comment['comment_id']}").screenshot(
-                    path=f"storage/{reddit_id}/png/comment_{comment['comment_id']}.png"
+                    path=f"storage/{reddit_id}/png/{image_name}"
             )
-            logger.info(f"Comment: {comment['comment_id']} screenshot taken.")
+            logger.info(f"Comment: {image_name} screenshot taken.")
+            
+            comment_info = {'name': comment['comment_id'], 'text': comment['body']}
+            comment_list.append(comment_info)
+            
         except TimeoutError:
             screenshot_num += 1
             logger.error("TimeoutError: Skipping screenshot...")
             continue
+        
+    return comment_list
 
 def get_screenshots_of_reddit_posts(reddit_post):
+    result_data = {} 
     
     for post in reddit_post:
-        logger.info("Downloading screenshots of reddit posts...")
         reddit_id = post['id']
         
         Path(f"storage/{reddit_id}/png").mkdir(parents=True, exist_ok=True)
@@ -131,9 +145,17 @@ def get_screenshots_of_reddit_posts(reddit_post):
             __handle_redesign(page, context)
             
             logger.info("Taking screenshots...")
-            __get_thread_screenshots(post, page)
-            __get_comment_screenshots(post, page)
+            post_list = __get_thread_screenshots(post, page)
+            comment_list = __get_comment_screenshots(post, page)
+            
+            data = {
+                'name': post_list['name'],
+                'text': post_list['text'],
+                'comment_data': comment_list
+            }
+
+            result_data[reddit_id] = data
         
             browser.close() # close browser instance when we are done using it
 
-        logger.info("Screenshots captured successfully!")
+        return result_data
