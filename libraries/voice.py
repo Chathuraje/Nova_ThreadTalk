@@ -82,7 +82,7 @@ def generate_voice(reddit_data):
             
         data = {
             'id': reddit_id,
-            'title': reddit_item['text']
+            'title': title
         }
 
         result_data.append(data)

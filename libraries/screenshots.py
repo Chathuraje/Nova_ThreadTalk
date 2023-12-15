@@ -150,6 +150,7 @@ def get_screenshots_of_reddit_posts(reddit_post):
             
             data = {
                 'id': reddit_id,
+                'name': post_list['name'],
                 'title': post_list['text'],
                 'comments': comment_list
             }
