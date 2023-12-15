@@ -6,6 +6,7 @@ from markdown import markdown
 import re
 import re
 from config.secrets import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
+from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS
 from utils.log import setup_logger, get_logger
 
 
@@ -124,7 +125,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
     for comment in submission.comments.list():
         if isinstance(comment, MoreComments) or comment.banned_by or comment.body in ["[removed]", "[deleted]"]:
             continue
-        if any(word in comment.body.lower() for word in profanity_words) or not 25 < len(comment.body.split()) < 50:
+        if any(word in comment.body.lower() for word in profanity_words) or not MIN_COMMENT_WORDS < len(comment.body.split()) < MAX_COMMENT_WORDS:
             continue
             
         comments_body = __markdown_to_text(comment.body)
@@ -136,7 +137,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
             "comment_url": comment.permalink
         })
         
-        if len(data) == 10:
+        if len(data) == 15:
             break
     
     return data
