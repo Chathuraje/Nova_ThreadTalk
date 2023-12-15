@@ -33,7 +33,7 @@ def __set_api_key_and_check(key):
     return False
 
 
-def __generate_audio(reddit_id, name, text):
+def __generate_audio(reddit_id, name, text, comment_id=None):
     voice_folder = Path(f"storage/{reddit_id}/voice")
     
     try:
@@ -47,7 +47,11 @@ def __generate_audio(reddit_id, name, text):
 
         with open(f"{voice_folder}/{name}.mp3", 'wb') as f:
             f.write(audio)
-            logger.info(f"Audio generated for {name}")
+            
+            if comment_id is not None:
+                logger.info(f"Audio generated for {comment_id}")
+            else:
+                logger.info(f"Audio generated for {name}")
     except Exception as e:
         logger.error(f"Error generating audio for {name}: {e}")
         
@@ -76,9 +80,10 @@ def generate_voice(reddit_data):
 
         # Loop through the comments list
         for comment in comments:
+            comment_id = comment['id']
             comment_name = comment['name']
             comment_text = comment['text']
-            __generate_audio(reddit_id, comment_name, comment_text)
+            __generate_audio(reddit_id, comment_name, comment_text, comment_id)
             
         data = {
             'id': reddit_id,

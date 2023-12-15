@@ -108,7 +108,7 @@ def __remove_special_characters(text):
 
 def __profanity_load():
     # Load profanity data for filtering
-    profanity_data = pd.read_csv("datasets/profanity_check.csv")
+    profanity_data = pd.read_csv("data/profanity_check.csv")
     profanity_words = set(profanity_data["word"].str.lower())
 
     return profanity_words
@@ -137,7 +137,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
             "comment_url": comment.permalink
         })
         
-        if len(data) == COMMENT_LIMIT:
+        if len(data) == (COMMENT_LIMIT*2):
             break
     
     return data

@@ -3,7 +3,7 @@ from pathlib import Path
 from playwright.sync_api import ViewportSize, sync_playwright
 from utils.log import setup_logger, get_logger
 from config.secrets import REDDIT_PASSWORD, REDDIT_USERNAME
-from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH
+from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH, COMMENT_LIMIT
 
 setup_logger()
 logger = get_logger()
@@ -103,25 +103,28 @@ def __get_comment_screenshots(post, page):
     reddit_id = post['id']
     screenshot_num = 1
     comment_list = []
-    
+    logger.info(f"Total comments to take screenshot: {COMMENT_LIMIT}")
     for idx, comment in enumerate(post['comments']):
         if page.locator('[data-testid="content-gate"]').is_visible():
             page.locator('[data-testid="content-gate"] button').click()
         page.goto(f'https://reddit.com{comment["comment_url"]}', timeout=0)
         try:
-            image_name = f"{comment['comment_id']}.png"
+            image_name = f"{screenshot_num}"
             page.locator(f"#t1_{comment['comment_id']}").screenshot(
-                    path=f"storage/{reddit_id}/image/{image_name}"
+                    path=f"storage/{reddit_id}/image/{image_name}.png"
             )
-            logger.info(f"Comment: {image_name} screenshot taken.")
+            logger.info(f"Comment: {comment['comment_id']} screenshot taken.")
             
-            comment_info = {'name': comment['comment_id'], 'text': comment['body']}
+            comment_info = {'id': comment['comment_id'], 'name': image_name, 'text': comment['body']}
             comment_list.append(comment_info)
             
-        except TimeoutError:
             screenshot_num += 1
+        except TimeoutError:
             logger.error("TimeoutError: Skipping screenshot...")
             continue
+        
+        if screenshot_num >= COMMENT_LIMIT+1:
+            break
         
     return comment_list
 
