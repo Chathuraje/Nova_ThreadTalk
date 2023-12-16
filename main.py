@@ -3,6 +3,7 @@ from libraries.screenshots import get_screenshots_of_reddit_posts
 from libraries.voice import generate_voice
 from utils.log import setup_logger, get_logger
 from libraries.video import make_final_video
+from utils.database.schemas import save_videos_data
 
 setup_logger()
 logger = get_logger()
@@ -23,7 +24,14 @@ def __generate_short_video(subreddit):
     video_files = make_final_video(reddit_details)
     logger.info("Generating video completed!")
     
-
+    # Save the video files to the database
+    save_videos_data(subreddit, video_files)
+    # Generata meta tags using chatgpt
+    
+    # upload the video files to the youtube and tiktok
+    
+    
+    
 def main():
     logger.info("Starting...")
     

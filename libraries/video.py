@@ -210,7 +210,7 @@ def make_final_video(reddit_details):
         logger.info(f"Video creation complete for video: {reddit['title']} and saved to: {path}")
         output_files.append({
             "id": reddit_id,
-            "time": str(int(time.time())),
+            "generated_data": str(int(time.time())),
             "reddit_title": reddit['title'],
             "path": path,
         })
