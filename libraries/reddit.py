@@ -7,6 +7,7 @@ import re
 import re
 from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, POST_LIMIT_FOR_ONE_TIME, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
+from utils.database.schemas import does_reddit_id_exist
 
 
 setup_logger()
@@ -159,7 +160,13 @@ def get_top_reddit_post(subreddit: str):
     for post in posts:
         logger.info(f"Processing post {post.id}... Title: {post.title}")
         
-        if post.over_18 or post.stickied or any(word in post.title.lower() for word in profanity_words): continue
+        if post.over_18 or post.stickied or any(word in post.title.lower() for word in profanity_words): 
+            logger.info(f"Post {post.id} failed initial filters. Skipping...")
+            continue
+        
+        if does_reddit_id_exist(post.id):
+            logger.info(f"Post {post.id} already exists in the database. Skipping...")
+            continue
 
         logger.info(f"Post {post.id} passed initial filters. Processing comments...")
         
