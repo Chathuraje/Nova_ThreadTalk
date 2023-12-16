@@ -58,9 +58,9 @@ def create_message(reddit_details):
         
     keyboard.append([InlineKeyboardButton("View Reddit", url=reddit_details['url'])])
         
-    if youtube_details:
+    if youtube_details is not None:
         keyboard.append([InlineKeyboardButton("View YouTube", url=youtube_details['url'])])
-    if tiktok_details:
+    if tiktok_details is not None:
         keyboard.append([InlineKeyboardButton("View TikTok", url=tiktok_details['url'])])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
