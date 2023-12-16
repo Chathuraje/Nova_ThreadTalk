@@ -34,6 +34,10 @@ def __generate_short_video(subreddit):
     reddit_details = upload_to_youtube(reddit_details)
     logger.info("Videos uploaded successfully!")
     
+    logger.info("Saving data to database...")
+    data = save_videos_data(reddit_details)
+    logger.info("Data saved successfully!")
+    
     
     
     

@@ -206,5 +206,6 @@ def make_final_video(reddit):
     
     
     reddit['generated_data'] = datetime.now().timestamp()
+    reddit['duration'] = total_overlay_duration
         
     return reddit

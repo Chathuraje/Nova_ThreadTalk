@@ -10,7 +10,7 @@ logger = get_logger()
 class TikTokDetails(BaseModel):
     title: str
     description: str
-    tag: str
+    tags: str
     upload_date: str
     url: str
     status: str
@@ -18,7 +18,7 @@ class TikTokDetails(BaseModel):
 class YouTubeDetails(BaseModel):
     title: str
     description: str
-    tag: str
+    tags: str
     upload_date: str
     url: str
     status: str
@@ -28,11 +28,12 @@ class VideosBase(BaseModel):
     
     reddit_id: str
     subreddit: str
-    reddit_title: str
+    title: str
+    duration: int
     generated_data: str
     youtube_details: Optional[TikTokDetails]
     tiktok_details: Optional[YouTubeDetails]
-    status: str
+    
     
     @validator("reddit_id", pre=True, always=True)
     def check_reddit_id(cls, value):
@@ -43,8 +44,8 @@ class VideosBase(BaseModel):
         return value
 
 class VideosCreate(VideosBase):
-    tiktok_details: Optional[TikTokDetails]
     youtube_details: Optional[YouTubeDetails]
+    tiktok_details: Optional[TikTokDetails]
 
 class Videos(VideosBase):
     id: str

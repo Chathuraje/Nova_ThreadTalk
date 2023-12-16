@@ -59,10 +59,10 @@ def get_meta_data(reddit_details):
 
     logger.info(f"Generating meta data for video: {video_name}")
     youtube_details = __get_meta_data(client, video_name, platform='youtube')
-    tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+    # tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
 
     reddit_details['youtube_details'] = youtube_details
-    reddit_details['tiktok_details'] = tiktok_details
+    # reddit_details['tiktok_details'] = tiktok_details
     
     return reddit_details
     
