@@ -5,7 +5,7 @@ from utils.log import setup_logger, get_logger
 from libraries.video import make_final_video
 from utils.database.schemas import save_videos_data
 from utils.chatgpt import get_meta_data
-
+from utils.youtube import upload_to_youtube
 
 setup_logger()
 logger = get_logger()
@@ -30,7 +30,9 @@ def __generate_short_video(subreddit):
     complete_data = get_meta_data(video_files) 
     logger.info('Meta tags generated successfully!')
     
-   
+    logger.info("Uploading videos to YouTube...")
+    complete_data = upload_to_youtube(complete_data)
+    logger.info("Videos uploaded successfully!")
     
     
 def main():
