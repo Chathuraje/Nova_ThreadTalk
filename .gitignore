@@ -161,6 +161,9 @@ storage/*
 # Google Files
 config/google/*
 
+# Excluder Test Folder
+test/*
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

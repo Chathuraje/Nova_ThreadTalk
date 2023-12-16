@@ -104,7 +104,7 @@ def __get_meta_data(client, video_name, platform):
     logger.info(f"Description: {description_output}")
     
     # Generate tags/hashtags
-    tags_prompt = f"Suggest {tags_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}"
+    tags_prompt = f"Suggest {tags_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}, do not add # sign. seperate each tag with a comma."
     tags_output = ask(client, tags_prompt)
     logger.info(f"Tags: {tags_output}")
     
