@@ -142,14 +142,14 @@ def __get_top_reddit_comment(reddit, post_id: str):
     
     return data
 
-def get_top_reddit_post(subreddit: str):
+def get_top_reddit_post(subredditName: str):
     
     profanity_words = __profanity_load()
     
     try:
         # Get the Reddit client
         reddit = __get_reddit_client()
-        subreddit = reddit.subreddit(subreddit)
+        subreddit = reddit.subreddit(subredditName)
     except Exception as e:
         pass
     
