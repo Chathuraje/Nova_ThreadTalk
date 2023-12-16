@@ -20,7 +20,7 @@ def setup_logger():
             }
         )
 
-        logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(filename='nova_redditautogen.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
