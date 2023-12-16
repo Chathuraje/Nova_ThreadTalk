@@ -19,20 +19,22 @@ def __generate_short_video(subreddit):
     logger.info("Screenshots captured successfully!")
     
     logger.info("Generating voice...")
-    reddit_details = generate_voice(selected_reddit_data)
+    reddit_details = generate_voice(subreddit, selected_reddit_data)
     logger.info("Generating voice completed!")
     
     logger.info("Video Generation started...")
-    video_files = make_final_video(reddit_details)
+    reddit_details = make_final_video(reddit_details)
     logger.info("Generating video completed!")
-
+    
     logger.info('Generating meta tags...')
-    complete_data = get_meta_data(video_files) 
+    reddit_details = get_meta_data(reddit_details) 
     logger.info('Meta tags generated successfully!')
     
     logger.info("Uploading videos to YouTube...")
-    complete_data = upload_to_youtube(complete_data)
+    reddit_details = upload_to_youtube(reddit_details)
     logger.info("Videos uploaded successfully!")
+    
+    
     
     
 def main():

@@ -8,13 +8,13 @@ import re
 setup_logger()
 logger = get_logger()
 
-def __set_api_key():
+def __set_api_key(characters):
     for key in ELEVENLABS_API_KEYS:
-        if __set_api_key_and_check(key):
+        if __set_api_key_and_check(key, characters):
             return True
     return False
 
-def __set_api_key_and_check(key):
+def __set_api_key_and_check(key, characters):
     try:
         set_api_key(key)
         user = User.from_api()
@@ -22,7 +22,7 @@ def __set_api_key_and_check(key):
         character_count = user.subscription.character_count
         character_limit = user.subscription.character_limit
         
-        if character_limit - character_count >= 1500:
+        if character_limit - character_count >= (characters+25):
             logger.info(f"API key set successfully!: character_limit={character_limit}, character_count={character_count}")
             return True
         else:
@@ -56,40 +56,49 @@ def __generate_audio(reddit_id, name, text, comment_id=None):
         logger.error(f"Error generating audio for {name}: {e}")
         
 
-def generate_voice(reddit_data):
-    result_data = []
+def __count_characters(reddit_data):
+    
+    title_characters_count = len(reddit_data['title'])
+    comments_characters_count = sum(len(comment['text']) for comment in reddit_data['comments'])
+
+    total_characters_count = title_characters_count + comments_characters_count
+    
+    return int(total_characters_count)
+
+
+def generate_voice(subreddit, reddit_data):
+    characters = __count_characters(reddit_data)
+    logger.info(f"Generating voice for {reddit_data['id']} with {characters} characters.")
     
     logger.info("ELEVENLABS: Connecting API")
-    success = __set_api_key()
+    success = __set_api_key(characters)
 
     if not success:
         logger.error("All API keys failed. Unable to set a valid API key.")
         exit()
         
-    for reddit_item in reddit_data:
-        reddit_id = reddit_item['id']
+    reddit_id = reddit_data['id']
         
-        name = reddit_item['name']
-        title = reddit_item['title']
-        comments = reddit_item['comments']
+    name = reddit_data['name']
+    title = reddit_data['title']
+    comments = reddit_data['comments']
 
-        voice_folder = Path(f"storage/{reddit_id}/voice")
-        voice_folder.mkdir(parents=True, exist_ok=True)
+    voice_folder = Path(f"storage/{reddit_id}/voice")
+    voice_folder.mkdir(parents=True, exist_ok=True)
 
-        __generate_audio(reddit_id, name, title)
+    __generate_audio(reddit_id, name, title)
 
-        # Loop through the comments list
-        for comment in comments:
-            comment_id = comment['id']
-            comment_name = comment['name']
-            comment_text = comment['text']
-            __generate_audio(reddit_id, comment_name, comment_text, comment_id)
+    # Loop through the comments list
+    for comment in comments:
+        comment_id = comment['id']
+        comment_name = comment['name']
+        comment_text = comment['text']
+        __generate_audio(reddit_id, comment_name, comment_text, comment_id)
             
-        data = {
-            'id': reddit_id,
-            'title': title
-        }
-
-        result_data.append(data)
+    data = {
+        'id': reddit_id,
+        'subreddit': subreddit,
+        'title': title
+    }
         
-    return result_data
+    return data

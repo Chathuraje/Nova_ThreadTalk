@@ -52,24 +52,19 @@ def ask(client, prompt, conversation=[]):
 
 
 
-def get_meta_data(video_files):
+def get_meta_data(reddit_details):
     client = initialize_openai()
     
-    result_data = []
+    video_name = reddit_details['title']
 
-    for video_file in video_files:
-        video_name = video_file['reddit_title']
+    logger.info(f"Generating meta data for video: {video_name}")
+    youtube_details = __get_meta_data(client, video_name, platform='youtube')
+    tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
 
-        logger.info(f"Generating meta data for video: {video_name}")
-        youtube_meta_data = __get_meta_data(client, video_name, platform='youtube')
-        tiktok_meta_data = __get_meta_data(client, video_name, platform='tiktok')
-
-        video_file['youtube_meta_data'] = youtube_meta_data
-        video_file['tiktok_meta_data'] = tiktok_meta_data
-
-        result_data.append(video_file)
-
-    return result_data
+    reddit_details['youtube_details'] = youtube_details
+    reddit_details['tiktok_details'] = tiktok_details
+    
+    return reddit_details
     
     
     

@@ -7,6 +7,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
+from datetime import datetime
 
 setup_logger()
 logger = get_logger()
@@ -45,50 +46,57 @@ def authenticate():
 def build_youtube_client(creds):
     return build('youtube', 'v3', credentials=creds)
 
-def upload_to_youtube(complete_data):
+def upload_to_youtube(reddit_details):
     creds = authenticate()
     youtube_client = build_youtube_client(creds)
-    data = []
-    for video_file in complete_data:
-        video_id = video_file['id']
-        youtube_meta_data = video_file['youtube_meta_data']
+    
+    video_id = reddit_details['id']
+    youtube_details = reddit_details['youtube_details']
         
-        title = youtube_meta_data['title']
-        description = youtube_meta_data['description']
-        tags = youtube_meta_data['tags']
+    title = youtube_details['title']
+    description = youtube_details['description']
+    tags = youtube_details['tags']
         
-        request_body = {
-            'snippet': {
-                'categoryId': 22,
-                'title': title,
-                'description': description,
-                'tags': tags
-            },
-            'status': {
-                'privacyStatus': 'unlisted',
-                'selfDeclaredMadeForKids': False
-        },
-        'notifySubscribers': True
-        }
+    request_body = {
+        'snippet': {
+        'categoryId': 22,
+        'title': title,
+        'description': description,
+        'tags': tags
+    },
+    'status': {
+        'privacyStatus': 'public',
+        'selfDeclaredMadeForKids': False
+    },
+    'notifySubscribers': True
+    }
         
-        mediaFile = MediaFileUpload(f'storage/{video_id}/{video_id}.mp4')
+    mediaFile = MediaFileUpload(f'storage/{video_id}/{video_id}.mp4')
         
-        request = youtube_client.videos().insert(
-            part='snippet,status',
-            body=request_body,
-            media_body=mediaFile
-        )
+    request = youtube_client.videos().insert(
+        part='snippet,status',
+        body=request_body,
+        media_body=mediaFile
+    )
         
-        response = request.execute()
-        video_id = response['id']
+    response = request.execute()
+    video_id = response['id']
+    
+    video_url = f'https://www.youtube.com/watch?v={video_id}'
+    logger.info(f'Video URL is: {video_url}')
         
-        video_data = youtube_set_active(youtube_client, video_id, video_file)
-        data.append(video_data)
+    # youtube_set_active(youtube_client, video_id)
+    
+    reddit_details['youtube_details']['upload_date'] = datetime.now().timestamp()
+    reddit_details['youtube_details']['url'] = video_url
+    reddit_details['youtube_details']['status'] = "uploaded"
+    
         
-    return data     
+    return reddit_details     
         
         
-def youtube_set_active(youtube, video_id: str, video_file):
+        
+def youtube_set_active(youtube, video_id: str):
     
     request = youtube.videos().update(
     part='status',
@@ -101,10 +109,6 @@ def youtube_set_active(youtube, video_id: str, video_file):
     request.execute()
     video_url = f'https://www.youtube.com/watch?v={video_id}'
     logger.info(f'Video URL is: {video_url}')
-    
-    video_file['youtube_meta_data']['url'] = video_url
-    
-    return video_file
        
         
        

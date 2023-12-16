@@ -130,35 +130,32 @@ def __get_comment_screenshots(post, page):
 def get_screenshots_of_reddit_posts(reddit_post):
     result_data = []
     
-    for post in reddit_post:
-        reddit_id = post['id']
+    reddit_id = reddit_post['id']
         
-        Path(f"storage/{reddit_id}/image").mkdir(parents=True, exist_ok=True)
-        cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
+    Path(f"storage/{reddit_id}/image").mkdir(parents=True, exist_ok=True)
+    cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
 
-        with sync_playwright() as p:
-            logger.info("Launching Headless Browser...")
-            page, browser, context = __launching_browser(cookie_file, p)
+    with sync_playwright() as p:
+        logger.info("Launching Headless Browser...")
+        page, browser, context = __launching_browser(cookie_file, p)
             
-            logger.info("Login to Reddit...")
-            __login_to_reddit(page)
+        logger.info("Login to Reddit...")
+        __login_to_reddit(page)
 
-            logger.info("Handling Redesign...")
-            __handle_redesign(page, context)
+        logger.info("Handling Redesign...")
+        __handle_redesign(page, context)
             
-            logger.info("Taking screenshots...")
-            post_list = __get_thread_screenshots(post, page)
-            comment_list = __get_comment_screenshots(post, page)
+        logger.info("Taking screenshots...")
+        post_list = __get_thread_screenshots(reddit_post, page)
+        comment_list = __get_comment_screenshots(reddit_post, page)
             
-            data = {
-                'id': reddit_id,
-                'name': post_list['name'],
-                'title': post_list['text'],
-                'comments': comment_list
-            }
-
-            result_data.append(data)
+        data = {
+            'id': reddit_id,
+            'name': post_list['name'],
+            'title': post_list['text'],
+            'comments': comment_list
+        }
         
-            browser.close() # close browser instance when we are done using it
-
-        return result_data
+        browser.close() # close browser instance when we are done using it    
+        
+        return data

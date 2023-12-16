@@ -11,15 +11,17 @@ class TikTokDetails(BaseModel):
     title: str
     description: str
     tag: str
-    status: str
     upload_date: str
+    url: str
+    status: str
 
 class YouTubeDetails(BaseModel):
     title: str
     description: str
     tag: str
-    status: str
     upload_date: str
+    url: str
+    status: str
 
 class VideosBase(BaseModel):
     __tablename__ = 'Videos'
@@ -28,8 +30,8 @@ class VideosBase(BaseModel):
     subreddit: str
     reddit_title: str
     generated_data: str
-    tiktok_details: Optional[TikTokDetails]
-    youtube_details: Optional[YouTubeDetails]
+    youtube_details: Optional[TikTokDetails]
+    tiktok_details: Optional[YouTubeDetails]
     status: str
     
     @validator("reddit_id", pre=True, always=True)

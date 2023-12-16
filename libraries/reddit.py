@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from markdown import markdown
 import re
 import re
-from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, POST_LIMIT_FOR_ONE_TIME, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
+from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 from utils.database.schemas import does_reddit_id_exist
 
@@ -155,7 +155,6 @@ def get_top_reddit_post(subreddit: str):
     
     posts = subreddit.top(time_filter="day", limit=20)
     
-    data = []
     # Iterate through the posts and filter based on user preferences
     for post in posts:
         logger.info(f"Processing post {post.id}... Title: {post.title}")
@@ -172,14 +171,11 @@ def get_top_reddit_post(subreddit: str):
         
         comment_data = __get_top_reddit_comment(reddit, post.id)
         
-        data.append({
+        data = {
             "id": post.id,
             "title": post.title,
             "url": post.url,
             "comments": comment_data
-        })
+        }
                 
-        if len(data) == POST_LIMIT_FOR_ONE_TIME:
-            break
-    
-    return data
+        return data
