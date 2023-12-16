@@ -11,7 +11,7 @@ from libraries.telegram import send_telegram_message
 setup_logger()
 logger = get_logger()
 
-async def __generate_short_video(subreddit):
+def __generate_short_video(subreddit):
     logger.info(f"Getting top reddit post from: r/{subreddit}")
     reddit_data = get_top_reddit_post(subreddit)
     
