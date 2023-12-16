@@ -1,4 +1,5 @@
-import openai
+import os
+from openai import OpenAI
 from utils.log import setup_logger, get_logger
 from config.config import OPENAI_API_KEY
 import time
@@ -8,68 +9,72 @@ logger = get_logger()
 
 def initialize_openai():
     try:
-        openai.api_key = OPENAI_API_KEY
+        client = OpenAI(
+            api_key = OPENAI_API_KEY,
+        )
+        
+        return client
     except Exception as e:
         logger.error(f"Error initializing OpenAI: {e}")
 
-def generate_chat_completion(messages):
+def generate_chat_completion(client, messages):
     try:
-        response = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=messages,
+            max_tokens=100,
+            temperature=0.7,
             n=1
         )
-        return response.choices[0].message
+        return completion.choices[0].message.content
     except Exception as e:
         logger.error(f"Error generating GPT: {e}")
         return None
 
-def ask_gpt(prompt, conversation):
+def ask_gpt(client, prompt, conversation):
     conversation.append({'role': 'system', 'content': prompt})
-    conversation_response = generate_chat_completion(conversation)
+    conversation_response = generate_chat_completion(client, conversation)
     
     if conversation_response is None:
         # Retry after a delay if the first attempt fails
         time.sleep(20)
-        conversation_response = generate_chat_completion(conversation)
+        conversation_response = generate_chat_completion(client, conversation)
 
     return conversation_response
 
-def ask(prompt, conversation=[]):
-    initialize_openai()
+def ask(client, prompt, conversation=[]):
     logger.info(f" Asking GPT: {prompt}")
     
-    output = ask_gpt(prompt, conversation)
-    return output['content'].strip() if output else None
+    output = ask_gpt(client, prompt, conversation)
+    output = output.replace('"', '')
+    
+    return output
 
 
 
 def get_meta_data(video_files):
+    client = initialize_openai()
+    
     result_data = []
 
     for video_file in video_files:
         video_name = video_file['reddit_title']
-        video_id = video_file['id']
 
         logger.info(f"Generating meta data for video: {video_name}")
-        youtube_meta_data = __get_meta_data(video_name, platform='youtube')
-        tiktok_meta_data = __get_meta_data(video_name, platform='tiktok')
+        youtube_meta_data = __get_meta_data(client, video_name, platform='youtube')
+        tiktok_meta_data = __get_meta_data(client, video_name, platform='tiktok')
 
-        video_data = {
-            'id': video_id,
-            'youtube_meta_data': youtube_meta_data,
-            'tiktok_meta_data': tiktok_meta_data
-        }
+        video_file['youtube_meta_data'] = youtube_meta_data
+        video_file['tiktok_meta_data'] = tiktok_meta_data
 
-        result_data.append(video_data)
+        result_data.append(video_file)
 
     return result_data
     
     
     
 
-def __get_meta_data(video_name, platform):
-    meta_data_list = []
+def __get_meta_data(client, video_name, platform):
 
     if platform == 'youtube':
         title_prompt_type = 'title'
@@ -89,18 +94,18 @@ def __get_meta_data(video_name, platform):
         logger.error("Invalid platform. Supported platforms are 'youtube' and 'tiktok'.")
         
     # Generate title
-    title_prompt = f"Create a {title_prompt_type} for a video about {video_name}. {additional}"
-    title_output = ask(title_prompt)
+    title_prompt = f"Create a {title_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one is allowed. do not add additional text or data"
+    title_output = ask(client, title_prompt)
     logger.info(f"Title: {title_output}")
 
     # Generate description
-    description_prompt = f"Write a {description_prompt_type} for a video about {video_name}. {additional}"
-    description_output = ask(description_prompt)
+    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, limite use less than 100 words"
+    description_output = ask(client, description_prompt)
     logger.info(f"Description: {description_output}")
     
     # Generate tags/hashtags
-    tags_prompt = f"Suggest {tags_prompt_type} for a video about {video_name}. {additional}"
-    tags_output = ask(tags_prompt)
+    tags_prompt = f"Suggest {tags_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}"
+    tags_output = ask(client, tags_prompt)
     logger.info(f"Tags: {tags_output}")
     
     meta_data = {
@@ -108,7 +113,6 @@ def __get_meta_data(video_name, platform):
         'description': description_output,
         'tags': tags_output
     }
-    meta_data_list.append(meta_data)
 
-    return meta_data_list
+    return meta_data
     
