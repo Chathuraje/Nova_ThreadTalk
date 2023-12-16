@@ -30,7 +30,8 @@ def save_videos_data(reddit_details):
     reddit_details = {
         'id': '18j6dbr', 
         'subreddit': 'AskReddit', 
-        'title': 'What was something that was done in the name of safety that turned out to be more dangerous than the hazard that it was intended to prevent?', 
+        'title': 'What was something that was done in the name of safety that turned out to be more dangerous than the hazard that it was intended to prevent?',
+        'url': 'http://www.reddit.com/r/AskReddit/comments/18j6dbr/what_was_something_that_was_done_in_the_name_of/', 
         'duration': '45',
         'generated_data': 1702743649.315682, 
         'youtube_details': {

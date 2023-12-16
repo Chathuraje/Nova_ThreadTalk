@@ -6,11 +6,13 @@ from libraries.video import make_final_video
 from utils.database.schemas import save_videos_data
 from libraries.chatgpt import get_meta_data
 from libraries.youtube import upload_to_youtube
+from libraries.telegram import send_telegram_message
+import asyncio
 
 setup_logger()
 logger = get_logger()
 
-def __generate_short_video(subreddit):
+async def __generate_short_video(subreddit):
     logger.info(f"Getting top reddit post from: r/{subreddit}")
     reddit_data = get_top_reddit_post(subreddit)
     
@@ -37,20 +39,23 @@ def __generate_short_video(subreddit):
     logger.info("Saving data to database...")
     data = save_videos_data(reddit_details)
     logger.info("Data saved successfully!")
+
+    logger.info("Sending message to telegram...")
+    await send_telegram_message(data)
+    logger.info("Message sent successfully!")
     
     
     
-    
-def main():
+async def main():
     logger.info("Starting...")
     
     
     subreddits = ["AskReddit"]
     for subreddit in subreddits:
-        __generate_short_video(subreddit)
+        await __generate_short_video(subreddit)
     
     
     logger.info("Done.")
     
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

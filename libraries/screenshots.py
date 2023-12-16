@@ -153,6 +153,7 @@ def get_screenshots_of_reddit_posts(reddit_post):
             'id': reddit_id,
             'name': post_list['name'],
             'title': post_list['text'],
+            'url': post_list['url'],
             'comments': comment_list
         }
         

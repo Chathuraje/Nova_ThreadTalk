@@ -82,6 +82,7 @@ def generate_voice(subreddit, reddit_data):
     name = reddit_data['name']
     title = reddit_data['title']
     comments = reddit_data['comments']
+    url = reddit_data['url']
 
     voice_folder = Path(f"storage/{reddit_id}/voice")
     voice_folder.mkdir(parents=True, exist_ok=True)
@@ -98,7 +99,8 @@ def generate_voice(subreddit, reddit_data):
     data = {
         'id': reddit_id,
         'subreddit': subreddit,
-        'title': title
+        'title': title,
+        'url': url
     }
         
     return data
