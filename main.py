@@ -7,7 +7,6 @@ from utils.database.schemas import save_videos_data
 from libraries.chatgpt import get_meta_data
 from libraries.youtube import upload_to_youtube
 from libraries.telegram import send_telegram_message
-import asyncio
 
 setup_logger()
 logger = get_logger()
@@ -40,22 +39,22 @@ async def __generate_short_video(subreddit):
     data = save_videos_data(reddit_details)
     logger.info("Data saved successfully!")
 
-    logger.info("Sending message to telegram...")
-    await send_telegram_message(data)
-    logger.info("Message sent successfully!")
+    # logger.info("Sending message to telegram...")
+    # await send_telegram_message(data)
+    # logger.info("Message sent successfully!")
     
     
     
-async def main():
+def main():
     logger.info("Starting...")
     
     
     subreddits = ["AskReddit"]
     for subreddit in subreddits:
-        await __generate_short_video(subreddit)
+        __generate_short_video(subreddit)
     
     
     logger.info("Done.")
     
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
