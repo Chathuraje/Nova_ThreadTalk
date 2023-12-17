@@ -1,8 +1,9 @@
 import json
-from pathlib import Path
 from playwright.sync_api import ViewportSize, sync_playwright
 from utils.log import setup_logger, get_logger
 from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH, COMMENT_LIMIT, REDDIT_PASSWORD, REDDIT_USERNAME
+from utils.data import read_reddit_json, check_ongoing, create_json, update_json
+import os
 
 setup_logger()
 logger = get_logger()
@@ -106,15 +107,15 @@ def __get_comment_screenshots(post, page):
     for idx, comment in enumerate(post['comments']):
         if page.locator('[data-testid="content-gate"]').is_visible():
             page.locator('[data-testid="content-gate"] button').click()
-        page.goto(f'https://reddit.com{comment["comment_url"]}', timeout=0)
+        page.goto(f'https://reddit.com{comment["url"]}', timeout=0)
         try:
             image_name = f"{screenshot_num}"
-            page.locator(f"#t1_{comment['comment_id']}").screenshot(
+            page.locator(f"#t1_{comment['id']}").screenshot(
                     path=f"storage/{reddit_id}/image/{image_name}.png"
             )
-            logger.info(f"Comment: {comment['comment_id']} screenshot taken.")
+            logger.info(f"Comment: {comment['id']} screenshot taken.")
             
-            comment_info = {'id': comment['comment_id'], 'name': image_name, 'text': comment['body']}
+            comment_info = {'id': comment['id'], 'name': image_name, 'text': comment['body'], 'voice': False}
             comment_list.append(comment_info)
             
             screenshot_num += 1
@@ -127,12 +128,30 @@ def __get_comment_screenshots(post, page):
         
     return comment_list
 
-def get_screenshots_of_reddit_posts(reddit_post):
-    result_data = []
-    
-    reddit_id = reddit_post['id']
+def __check_if_screenshot_exists(reddit_id):
+    title_path = f"storage/{reddit_id}/image/title.png"
+    if os.path.exists(title_path):
+        # Check if all comment screenshots exist
+        for i in range(1, COMMENT_LIMIT+1):
+            comment_path = f"storage/{reddit_id}/image/{i}.png"
+            if not os.path.exists(comment_path):
+                logger.info(f"Comment screenshot is missing. Retaking screenshots...")
+                return False
+
+        return True
+
+    return False
+
+def get_screenshots_of_reddit_posts():
+    reddit_id = check_ongoing()
+    if __check_if_screenshot_exists(reddit_id):
+        logger.info(f"Post {reddit_id} already has screenshots. Skipping...")
+        return None
         
-    Path(f"storage/{reddit_id}/image").mkdir(parents=True, exist_ok=True)
+    
+    reddit_post = read_reddit_json(reddit_id)
+    video_info = create_json(reddit_post)
+    
     cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
 
     with sync_playwright() as p:
@@ -144,19 +163,15 @@ def get_screenshots_of_reddit_posts(reddit_post):
 
         logger.info("Handling Redesign...")
         __handle_redesign(page, context)
-            
+         
         logger.info("Taking screenshots...")
         post_list = __get_thread_screenshots(reddit_post, page)
         comment_list = __get_comment_screenshots(reddit_post, page)
-            
-        data = {
-            'id': reddit_id,
-            'name': post_list['name'],
-            'title': post_list['text'],
-            'url': reddit_post['url'],
-            'comments': comment_list
-        }
         
-        browser.close() # close browser instance when we are done using it    
+        video_info['name'] = post_list['name']
+        video_info['comments'] = comment_list
         
-        return data
+        update_json(video_info)
+        
+        browser.close()   
+        

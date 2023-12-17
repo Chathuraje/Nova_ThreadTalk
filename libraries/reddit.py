@@ -8,7 +8,8 @@ import re
 from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 from utils.database.schemas import does_reddit_id_exist
-
+from utils.folders import create_folders
+from utils.data import create_reddit_json, update_reddit_json, check_ongoing
 
 setup_logger()
 logger = get_logger()
@@ -132,9 +133,9 @@ def __get_top_reddit_comment(reddit, post_id: str):
         
         logger.info(f"Selected comment {comment.id} with body: {comments_body}")
         data.append({
-            "comment_id": comment.id,
+            "id": comment.id,
             "body": comments_body,
-            "comment_url": comment.permalink
+            "url": comment.permalink
         })
         
         if len(data) == (COMMENT_LIMIT*2):
@@ -143,6 +144,12 @@ def __get_top_reddit_comment(reddit, post_id: str):
     return data
 
 def get_top_reddit_post(subredditName: str):
+    reddit_id = check_ongoing()
+    
+    if reddit_id != "":
+        logger.info(f"Post {reddit_id} is already in progress. Continuing...")
+        return None
+    
     
     profanity_words = __profanity_load()
     
@@ -157,6 +164,7 @@ def get_top_reddit_post(subredditName: str):
     
     # Iterate through the posts and filter based on user preferences
     for post in posts:
+        reddit_id = post.id
         logger.info(f"Processing post {post.id}... Title: {post.title}")
         
         if post.over_18 or post.stickied or any(word in post.title.lower() for word in profanity_words): 
@@ -169,13 +177,19 @@ def get_top_reddit_post(subredditName: str):
 
         logger.info(f"Post {post.id} passed initial filters. Processing comments...")
         
+        create_folders(post.id)
+        create_reddit_json(post.id)
+        
         comment_data = __get_top_reddit_comment(reddit, post.id)
         
         data = {
             "id": post.id,
+            "subreddit": subredditName,
             "title": post.title,
             "url": post.url,
             "comments": comment_data
         }
-                
-        return data
+        
+        update_reddit_json(data)
+        break
+        

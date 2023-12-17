@@ -3,6 +3,7 @@ from openai import OpenAI
 from utils.log import setup_logger, get_logger
 from config.config import OPENAI_API_KEY
 import time
+from utils.data import read_json, check_ongoing, update_json, create_json
 
 setup_logger()
 logger = get_logger()
@@ -51,21 +52,50 @@ def ask(client, prompt, conversation=[]):
     return output
 
 
+def __check_if_metatags_exists(reddit):
+    meta_tags = reddit["meta_tags"]
+    if meta_tags == []:
+        return False, False
+    else:
+        youtube_exists = False
+        tiktok_exists = False
 
-def get_meta_data(reddit_details):
-    client = initialize_openai()
-    
-    video_name = reddit_details['title']
+        for tag in meta_tags:
+            if tag['platform'] == 'youtube':
+                youtube_exists = True
+            
+            if tag['platform'] == 'tiktok':
+                tiktok_exists = True
 
-    logger.info(f"Generating meta data for video: {video_name}")
-    youtube_details = __get_meta_data(client, video_name, platform='youtube')
-    # tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+        return youtube_exists, tiktok_exists
+    
+    
 
-    reddit_details['youtube_details'] = youtube_details
-    # reddit_details['tiktok_details'] = tiktok_details
+
+def get_meta_data():
+    reddit_id = check_ongoing()
+    reddit_details = read_json(reddit_id)
     
-    return reddit_details
+    youtube_exists, tiktok_exists = __check_if_metatags_exists(reddit_details)
     
+    if youtube_exists and tiktok_exists:
+        logger.info(f"Post {reddit_id} already has meta tags. Skipping...")
+        return None
+    else:
+        client = initialize_openai()
+        video_name = reddit_details['title']
+
+        if not youtube_exists:
+            logger.info(f"Generating meta tags for YouTube...")
+            youtube_details = __get_meta_data(client, video_name, platform='youtube')
+            reddit_details['meta_tags'].append(youtube_details)
+
+        if not tiktok_exists:
+            logger.info(f"Generating meta tags for TikTok...")
+            tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+            reddit_details['meta_tags'].append(tiktok_details)
+
+        update_json(reddit_details)
     
     
 
@@ -104,6 +134,7 @@ def __get_meta_data(client, video_name, platform):
     logger.info(f"Tags: {tags_output}")
     
     meta_data = {
+        'platform': platform,
         'title': title_output,
         'description': description_output,
         'tags': tags_output

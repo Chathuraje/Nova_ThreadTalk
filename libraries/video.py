@@ -10,6 +10,7 @@ from tqdm import tqdm
 import os
 import random
 from datetime import datetime
+from utils.data import read_json, check_ongoing, update_json, create_json
 
 setup_logger()
 logger = get_logger()
@@ -55,12 +56,25 @@ class ProgressFfmpeg(threading.Thread):
     def __exit__(self, *args, **kwargs):
         self.stop()
 
+def __check_if_video_exists(reddit_id, reddit):
+    video_path = f"storage/{reddit_id}/{reddit_id}.mp4"
+    if os.path.exists(video_path):
+        durations = reddit['duration']
+        if durations == 0:
+            return False
+        return True
+    else:
+        return False
 
-def make_final_video(reddit):
+def make_final_video():
+    reddit_id = check_ongoing()
+    reddit = read_json(reddit_id)
+    
+    if __check_if_video_exists(reddit_id, reddit):
+        logger.info(f"Post {reddit_id} already has video. Skipping...")
+        return None
     
     logger.info(f"Making video for: {reddit['title']}")
-
-    reddit_id = reddit['id']
         
     logger.info(f"Gathering Background Video")
     background_video_path = f"data/background_videos/"
@@ -205,7 +219,7 @@ def make_final_video(reddit):
     logger.info(f"Video creation complete for video: {reddit['title']} and saved to: {path}")
     
     
-    reddit['generated_data'] = datetime.now().timestamp()
+    reddit['generated_date'] = datetime.now().timestamp()
     reddit['duration'] = total_overlay_duration
-        
-    return reddit
+    
+    update_json(reddit)

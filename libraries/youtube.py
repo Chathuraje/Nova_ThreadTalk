@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
 from datetime import datetime
+from utils.data import read_json, check_ongoing, update_json
 
 setup_logger()
 logger = get_logger()
@@ -46,16 +47,43 @@ def authenticate():
 def build_youtube_client(creds):
     return build('youtube', 'v3', credentials=creds)
 
-def upload_to_youtube(reddit_details):
+
+def __check_if_video_uploaded(reddit):
+    upload_info = reddit["upload_info"]
+    if upload_info == []:
+        return False
+    else:
+        youtube_exists = False
+
+        for tag in upload_info:
+            if tag['platform'] == 'youtube':
+                youtube_exists = True
+
+        return youtube_exists
+
+def upload_to_youtube():
+    reddit_id = check_ongoing()
+    reddit_details = read_json(reddit_id)
+    
+    if __check_if_video_uploaded(reddit_details):
+        logger.info(f"Post {reddit_id} already has video uploaded. Skipping...")
+        return None
+    
     creds = authenticate()
     youtube_client = build_youtube_client(creds)
     
     video_id = reddit_details['id']
-    youtube_details = reddit_details['youtube_details']
+    meta_tags = reddit_details['meta_tags']
+    
+    for tag in meta_tags:
+        if tag['platform'] == 'youtube':
+            youtube_details = tag
+            
         
     title = youtube_details['title']
     description = youtube_details['description']
     tags = youtube_details['tags']
+    
         
     request_body = {
         'snippet': {
@@ -87,13 +115,15 @@ def upload_to_youtube(reddit_details):
         
     # youtube_set_active(youtube_client, video_id)
     
-    reddit_details['youtube_details']['upload_date'] = datetime.now().timestamp()
-    reddit_details['youtube_details']['url'] = video_url
-    reddit_details['youtube_details']['status'] = "uploaded"
-    
+    reddit_details['upload_info'].append({
+        'platform': 'youtube',
+        'id': video_id,
+        'url': video_url,
+        'status': 'uploaded',
+        'upload_date': datetime.now().timestamp()
+    })
         
-    return reddit_details     
-        
+    update_json(reddit_details)
         
         
 def youtube_set_active(youtube, video_id: str):
