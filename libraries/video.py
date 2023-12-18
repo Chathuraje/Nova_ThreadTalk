@@ -9,8 +9,8 @@ from config.config import VIDEO_WIDTH, VIDEO_LENGTH
 from tqdm import tqdm
 import os
 import random
-from datetime import datetime
 from utils.data import read_json, check_ongoing, update_json, create_json
+from utils.time import get_current_sri_lankan_time
 
 setup_logger()
 logger = get_logger()
@@ -218,8 +218,7 @@ def make_final_video():
     pbar.close()
     logger.info(f"Video creation complete for video: {reddit['title']} and saved to: {path}")
     
-    
-    reddit['generated_date'] = datetime.now().timestamp()
+    reddit['generated_date'] = get_current_sri_lankan_time()
     reddit['duration'] = total_overlay_duration
     
     update_json(reddit)

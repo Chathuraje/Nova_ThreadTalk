@@ -7,8 +7,9 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
-from datetime import datetime
 from utils.data import read_json, check_ongoing, update_json
+from utils.time import get_current_sri_lankan_time
+
 
 setup_logger()
 logger = get_logger()
@@ -120,7 +121,7 @@ def upload_to_youtube():
         'id': video_id,
         'url': video_url,
         'status': 'uploaded',
-        'upload_date': datetime.now().timestamp()
+        'upload_date': get_current_sri_lankan_time()
     })
         
     update_json(reddit_details)
