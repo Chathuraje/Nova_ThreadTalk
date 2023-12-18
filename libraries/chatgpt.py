@@ -89,10 +89,10 @@ def get_meta_data():
             youtube_details = __get_meta_data(client, video_name, platform='youtube')
             reddit_details['meta_tags'].append(youtube_details)
 
-        if not tiktok_exists:
-            logger.info(f"Generating meta tags for TikTok...")
-            tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
-            reddit_details['meta_tags'].append(tiktok_details)
+        # if not tiktok_exists:
+        #     logger.info(f"Generating meta tags for TikTok...")
+        #     tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+        #     reddit_details['meta_tags'].append(tiktok_details)
 
         update_json(reddit_details)
     
