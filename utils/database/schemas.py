@@ -1,11 +1,6 @@
-from pymongo import MongoClient
 from bson import ObjectId
-from datetime import datetime
-from .models import VideosCreate, Videos
+from .models import VideosCreate
 from config.db import video_collection
-from utils.data import read_json, check_ongoing, update_json
-
-
 
 def __create_video_data(video: VideosCreate):
     video_data = video.dict()

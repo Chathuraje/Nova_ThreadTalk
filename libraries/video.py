@@ -5,7 +5,7 @@ import threading
 import time
 import math
 from utils.log import setup_logger, get_logger
-from config.config import VIDEO_WIDTH, VIDEO_LENGTH, COMMENT_LIMIT
+from config.config import VIDEO_WIDTH, VIDEO_LENGTH
 from tqdm import tqdm
 import os
 import random

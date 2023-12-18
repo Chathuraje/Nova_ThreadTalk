@@ -3,7 +3,6 @@ from pathlib import Path
 from utils.log import setup_logger, get_logger
 from elevenlabs.api import User
 from config.config import ELEVENLABS_API_KEYS
-import re
 from utils.data import read_json, check_ongoing, update_json
 
 setup_logger()
