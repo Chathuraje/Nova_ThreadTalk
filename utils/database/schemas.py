@@ -20,6 +20,11 @@ def __get_video_data_by_id(video_id: str):
     
     return video_data
 
+def __get_video_by_reddit_id(reddit_id: str):
+    video_data = video_collection.find_one({"reddit_id": reddit_id})
+    
+    return video_data
+
 
 def does_reddit_id_exist(reddit_id: str):
     existing_video = video_collection.find_one({"reddit_id": reddit_id})
