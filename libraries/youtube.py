@@ -10,7 +10,8 @@ from utils.log import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_current_sri_lankan_time
 from config.config import STAGE
-
+import json
+from datetime import datetime
 
 setup_logger()
 logger = get_logger()
@@ -63,7 +64,7 @@ def __check_if_video_uploaded(reddit):
 
         return youtube_exists
 
-def upload_to_youtube():
+def upload_to_youtube(timestamps_list):
     reddit_id = check_ongoing()
     reddit_details = read_json(reddit_id)
     
@@ -86,6 +87,14 @@ def upload_to_youtube():
     description = youtube_details['description']
     tags = youtube_details['tags']
     
+    file_path = 'storage/random_data.json'
+    with open(file_path, 'r') as file:
+        json_data = json.load(file)
+    selected_entry = next(entry for entry in json_data if not entry['selected'])
+    timestamp_str = selected_entry['timestamp']
+    scheduled_publish_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S%z')
+    
+    logger.info(f"Uploading video to YouTube at {scheduled_publish_time.isoformat()}")
         
     request_body = {
         'snippet': {
@@ -95,8 +104,9 @@ def upload_to_youtube():
         'tags': tags
     },
     'status': {
-        'privacyStatus': 'public',
-        'selfDeclaredMadeForKids': False
+        'privacyStatus': 'unlisted',
+        'selfDeclaredMadeForKids': False,
+        'publishAt': scheduled_publish_time.isoformat()
     },
     'notifySubscribers': True
     }
@@ -118,6 +128,10 @@ def upload_to_youtube():
     
     video_url = f'https://www.youtube.com/watch?v={video_id}'
     logger.info(f'Video URL is: {video_url}')
+    
+    selected_entry['selected'] = True
+    with open(file_path, 'w') as file:
+        json.dump(json_data, file, indent=2)
         
     # youtube_set_active(youtube_client, video_id)
     
@@ -126,7 +140,7 @@ def upload_to_youtube():
         'id': video_id,
         'url': video_url,
         'status': 'uploaded',
-        'upload_date': get_current_sri_lankan_time()
+        'upload_date': scheduled_publish_time.isoformat()
     })
         
     update_json(reddit_details)
