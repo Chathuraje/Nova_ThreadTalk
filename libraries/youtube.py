@@ -64,7 +64,7 @@ def __check_if_video_uploaded(reddit):
 
         return youtube_exists
 
-def upload_to_youtube(timestamps_list):
+def upload_to_youtube():
     reddit_id = check_ongoing()
     reddit_details = read_json(reddit_id)
     
@@ -87,7 +87,7 @@ def upload_to_youtube(timestamps_list):
     description = youtube_details['description']
     tags = youtube_details['tags']
     
-    file_path = 'storage/random_data.json'
+    file_path = 'storage/random_date.json'
     with open(file_path, 'r') as file:
         json_data = json.load(file)
     selected_entry = next(entry for entry in json_data if not entry['selected'])
@@ -104,7 +104,7 @@ def upload_to_youtube(timestamps_list):
         'tags': tags
     },
     'status': {
-        'privacyStatus': 'unlisted',
+        'privacyStatus': 'private',
         'selfDeclaredMadeForKids': False,
         'publishAt': scheduled_publish_time.isoformat()
     },
@@ -140,9 +140,9 @@ def upload_to_youtube(timestamps_list):
         'id': video_id,
         'url': video_url,
         'status': 'uploaded',
-        'upload_date': scheduled_publish_time.isoformat()
+        'upload_date': get_current_sri_lankan_time()
     })
-        
+    
     update_json(reddit_details)
         
         

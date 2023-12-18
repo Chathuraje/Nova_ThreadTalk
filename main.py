@@ -23,7 +23,7 @@ def generate_random_timestamp():
     today = datetime.now(ist_timezone).replace(hour=0, minute=0, second=0, microsecond=0)
     tomorrow = today + timedelta(days=1)
     random_timedelta = timedelta(hours=random.randint(4, 24))
-    random_timestamp = tomorrow + random_timedelta  # Use tomorrow instead of today
+    random_timestamp = today + random_timedelta  # Use tomorrow instead of today
 
     return random_timestamp
 
