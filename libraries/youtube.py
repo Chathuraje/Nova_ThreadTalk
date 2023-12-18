@@ -9,6 +9,7 @@ from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_current_sri_lankan_time
+from config.config import STAGE
 
 
 setup_logger()
@@ -108,7 +109,11 @@ def upload_to_youtube():
         media_body=mediaFile
     )
         
-    response = request.execute()
+    if STAGE == 'PRODUCTION':
+        response = request.execute()
+    elif STAGE == 'DEVELOPMENT':
+        response = {'kind': 'youtube#video', 'etag': 'COTIZQV7jGTZMIGUFKdIro5ORfY', 'id': '000000001', 'snippet': {'publishedAt': '2023-12-18T07:50:13Z', 'channelId': 'UCfC0a4Vvw-EoleljN_H5x5w', 'title': 'This is for development only.', 'description': 'This is for development only.', 'thumbnails': {'default': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/default.jpg', 'width': 120, 'height': 90}, 'medium': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/mqdefault.jpg', 'width': 320, 'height': 180}, 'high': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/hqdefault.jpg', 'width': 480, 'height': 360}}, 'channelTitle': 'discuss_duo', 'tags': ['This is for development only.'], 'categoryId': '22', 'liveBroadcastContent': 'none', 'localized': {'title': 'This is for development only.', 'description': 'This is for development only.'}}, 'status': {'uploadStatus': 'uploaded', 'privacyStatus': 'public', 'license': 'youtube', 'embeddable': True, 'publicStatsViewable': True, 'selfDeclaredMadeForKids': False}}
+    
     video_id = response['id']
     
     video_url = f'https://www.youtube.com/watch?v={video_id}'

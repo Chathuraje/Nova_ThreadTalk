@@ -1,6 +1,6 @@
 from openai import OpenAI
 from utils.log import setup_logger, get_logger
-from config.config import OPENAI_API_KEY
+from config.config import OPENAI_API_KEY, STAGE
 import time
 from utils.data import read_json, check_ongoing, update_json, create_json
 
@@ -18,6 +18,9 @@ def initialize_openai():
         logger.error(f"Error initializing OpenAI: {e}")
 
 def generate_chat_completion(client, messages):
+    if STAGE == "DEVELOPMENT":
+        return "This is for development only."
+        
     try:
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -27,6 +30,7 @@ def generate_chat_completion(client, messages):
             n=1
         )
         return completion.choices[0].message.content
+
     except Exception as e:
         logger.error(f"Error generating GPT: {e}")
         return None

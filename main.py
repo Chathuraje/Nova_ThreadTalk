@@ -7,6 +7,7 @@ from libraries.chatgpt import get_meta_data
 from libraries.save import save_videos_data
 from libraries.youtube import upload_to_youtube
 from libraries.telegram import send_telegram_message
+from config.config import STAGE
 
 setup_logger()
 logger = get_logger()
@@ -46,7 +47,10 @@ def __generate_short_video(subreddit):
     
     
 def main():
-    logger.info("Starting...")
+    if STAGE == "DEVELOPMENT":
+        logger.fatal(f"Starting...: MODE - {STAGE}") 
+    elif STAGE == "PRODUCTION":
+        logger.info(f"Starting...: MODE - {STAGE}")
     
     
     subreddits = ["AskReddit"]
@@ -54,7 +58,10 @@ def main():
         __generate_short_video(subreddit)
     
     
-    logger.info("Done.")
+    if STAGE == "DEVELOPMENT":
+        logger.fatal("Done.")
+    if STAGE == "PRODUCTION":
+        logger.info("Done.")
     
 if __name__ == "__main__":
     main()
