@@ -2,8 +2,10 @@ from elevenlabs import Voice, VoiceSettings, generate, set_api_key, play
 from pathlib import Path
 from utils.log import setup_logger, get_logger
 from elevenlabs.api import User
-from config.config import ELEVENLABS_API_KEYS
+from config.config import ELEVENLABS_API_KEYS, STAGE
 from utils.data import read_json, check_ongoing, update_json
+from gtts import gTTS
+import os
 
 setup_logger()
 logger = get_logger()
@@ -37,25 +39,31 @@ def __generate_audio(reddit_id, name, text, comment_id=None):
     voice_folder = Path(f"storage/{reddit_id}/voice")
     
     try:
-        audio = generate(
-            text=text,
-            voice=Voice(
-                voice_id='TxGEqnHWrfWFTfGW9XjX',
-                settings=VoiceSettings(stability=0, similarity_boost=0)
+        if STAGE == "DEVELOPMENT":
+            tts = gTTS(text=text, lang='en')
+            tts.save(f"{voice_folder}/{name}.mp3")
+        elif STAGE == "PRODUCTION":
+            audio = generate(
+                text=text,
+                voice=Voice(
+                    voice_id='TxGEqnHWrfWFTfGW9XjX',
+                    settings=VoiceSettings(stability=0, similarity_boost=0)
+                )
             )
-        )
 
-        with open(f"{voice_folder}/{name}.mp3", 'wb') as f:
-            f.write(audio)
+            with open(f"{voice_folder}/{name}.mp3", 'wb') as f:
+                f.write(audio)
             
-            if comment_id is not None:
-                logger.info(f"Audio generated for {comment_id}")
-            else:
-                logger.info(f"Audio generated for {name}")
-                
-            return True
+        if comment_id is not None:
+            logger.info(f"Audio generated for {comment_id}")
+        else:
+            logger.info(f"Audio generated for {name}")
+                    
+        return True
     except Exception as e:
         logger.error(f"Error generating audio for {name}: {e}")
+        
+        
         
 
 def __count_characters(reddit_data):
