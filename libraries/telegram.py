@@ -1,6 +1,5 @@
 from config.config import TELEGRAM_CHANNEL_ID, TELEGRAM_BOT_TOKEN
 from utils.log import setup_logger, get_logger
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from datetime import datetime
 from utils.data import read_json
 import requests
@@ -10,7 +9,6 @@ logger = get_logger()
 
 
 def create_message(reddit_details):
-    keyboard = []
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     heading = f"📰 Generated YouTube Short Details: {current_time}\n"
@@ -51,21 +49,10 @@ def create_message(reddit_details):
             f"🔗 URL: {tiktok_details['url']}\n\n"
         )
 
-    # Build keyboard for inline buttons
-    json_data_url = read_json(reddit_details['reddit_id'])['url']
-    keyboard.append([InlineKeyboardButton("View Reddit", url=json_data_url)])
-    if youtube_details:
-        keyboard.append([InlineKeyboardButton("View YouTube", url=youtube_details['url'])])
-    if tiktok_details:
-        keyboard.append([InlineKeyboardButton("View TikTok", url=tiktok_details['url'])])
-
-    # Create inline keyboard markup
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
     # Construct the message
     message = f"{heading}\n{title}\n{subreddit}\n{duration}\n{generated_data}{youtube_section}{tiktok_section}"
 
-    return message, reply_markup
+    return message
 
 
 def send_telegram_message(data):
