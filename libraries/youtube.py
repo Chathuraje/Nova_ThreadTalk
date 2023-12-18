@@ -19,7 +19,7 @@ SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 # define the path to the token.pickle file
 
 def authenticate():
-    TOKEN_PATH = f'config/google/google.pickle'
+    TOKEN_PATH = f'config/google/digitix.pickle'
     
     creds = None
     if os.path.exists(TOKEN_PATH):
@@ -30,7 +30,7 @@ def authenticate():
             creds.refresh(google.auth.transport.requests.Request())
         else:
             # create the OAuth2 flow for user authorization
-            JSON_PATH = f'config/google/digitix_607367205827.json'
+            JSON_PATH = f'config/google/digitix.json'
             flow = InstalledAppFlow.from_client_secrets_file(
                 JSON_PATH, scopes=SCOPES)
             creds = flow.run_local_server(port=0)
