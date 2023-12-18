@@ -6,7 +6,7 @@ from libraries.video import make_final_video
 from libraries.chatgpt import get_meta_data
 from libraries.save import save_videos_data
 from libraries.youtube import upload_to_youtube
-# from libraries.telegram import send_telegram_message
+from libraries.telegram import send_telegram_message
 
 setup_logger()
 logger = get_logger()
@@ -36,12 +36,12 @@ def __generate_short_video(subreddit):
     logger.info("Videos uploaded successfully!")
     
     logger.info("Saving data to database...")
-    save_videos_data()
+    data =save_videos_data()
     logger.info("Data saved successfully!")
 
-    # logger.info("Sending message to telegram...")
-    # await send_telegram_message(data)
-    # logger.info("Message sent successfully!")
+    logger.info("Sending message to telegram...")
+    send_telegram_message(data)
+    logger.info("Message sent successfully!")
     
     
     
