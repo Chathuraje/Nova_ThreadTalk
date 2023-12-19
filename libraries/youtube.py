@@ -7,8 +7,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
-from datetime import datetime
 from utils.data import read_json, check_ongoing, update_json
+from utils.time import get_current_sri_lankan_time
+from config.config import STAGE
+import json
+from datetime import datetime
 
 setup_logger()
 logger = get_logger()
@@ -17,7 +20,7 @@ SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 # define the path to the token.pickle file
 
 def authenticate():
-    TOKEN_PATH = f'config/google/google.pickle'
+    TOKEN_PATH = f'config/google/digitix.pickle'
     
     creds = None
     if os.path.exists(TOKEN_PATH):
@@ -28,7 +31,7 @@ def authenticate():
             creds.refresh(google.auth.transport.requests.Request())
         else:
             # create the OAuth2 flow for user authorization
-            JSON_PATH = f'config/google/digitix_607367205827.json'
+            JSON_PATH = f'config/google/digitix.json'
             flow = InstalledAppFlow.from_client_secrets_file(
                 JSON_PATH, scopes=SCOPES)
             creds = flow.run_local_server(port=0)
@@ -84,6 +87,14 @@ def upload_to_youtube():
     description = youtube_details['description']
     tags = youtube_details['tags']
     
+    file_path = 'storage/random_date.json'
+    with open(file_path, 'r') as file:
+        json_data = json.load(file)
+    selected_entry = next(entry for entry in json_data if not entry['selected'])
+    timestamp_str = selected_entry['timestamp']
+    scheduled_publish_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S%z')
+    
+    logger.info(f"Uploading video to YouTube at {scheduled_publish_time.isoformat()}")
         
     request_body = {
         'snippet': {
@@ -93,8 +104,9 @@ def upload_to_youtube():
         'tags': tags
     },
     'status': {
-        'privacyStatus': 'public',
-        'selfDeclaredMadeForKids': False
+        'privacyStatus': 'private',
+        'selfDeclaredMadeForKids': False,
+        'publishAt': scheduled_publish_time.isoformat()
     },
     'notifySubscribers': True
     }
@@ -107,11 +119,19 @@ def upload_to_youtube():
         media_body=mediaFile
     )
         
-    response = request.execute()
+    if STAGE == 'PRODUCTION':
+        response = request.execute()
+    elif STAGE == 'DEVELOPMENT':
+        response = {'kind': 'youtube#video', 'etag': 'COTIZQV7jGTZMIGUFKdIro5ORfY', 'id': '000000001', 'snippet': {'publishedAt': '2023-12-18T07:50:13Z', 'channelId': 'UCfC0a4Vvw-EoleljN_H5x5w', 'title': 'This is for development only.', 'description': 'This is for development only.', 'thumbnails': {'default': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/default.jpg', 'width': 120, 'height': 90}, 'medium': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/mqdefault.jpg', 'width': 320, 'height': 180}, 'high': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/hqdefault.jpg', 'width': 480, 'height': 360}}, 'channelTitle': 'discuss_duo', 'tags': ['This is for development only.'], 'categoryId': '22', 'liveBroadcastContent': 'none', 'localized': {'title': 'This is for development only.', 'description': 'This is for development only.'}}, 'status': {'uploadStatus': 'uploaded', 'privacyStatus': 'public', 'license': 'youtube', 'embeddable': True, 'publicStatsViewable': True, 'selfDeclaredMadeForKids': False}}
+    
     video_id = response['id']
     
     video_url = f'https://www.youtube.com/watch?v={video_id}'
     logger.info(f'Video URL is: {video_url}')
+    
+    selected_entry['selected'] = True
+    with open(file_path, 'w') as file:
+        json.dump(json_data, file, indent=2)
         
     # youtube_set_active(youtube_client, video_id)
     
@@ -120,9 +140,9 @@ def upload_to_youtube():
         'id': video_id,
         'url': video_url,
         'status': 'uploaded',
-        'upload_date': datetime.now().timestamp()
+        'upload_date': get_current_sri_lankan_time()
     })
-        
+    
     update_json(reddit_details)
         
         
