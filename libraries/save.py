@@ -1,18 +1,7 @@
 from utils.database.schemas import __create_video_data, does_reddit_id_exist, __get_video_by_reddit_id
 from utils.database.models import VideosCreate
 from utils.data import read_json, check_ongoing, close_the_process
-from datetime import datetime
-
-def __convert_timestamp_to_date(timestamp):
-    return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S UTC')
-
-
-
-def __get_platform_details(upload_info, platform):
-    for info in upload_info:
-        if info.get("platform") == platform:
-            return info
-    return None
+from utils.time import format_sri_lankan_time
 
 def save_videos_data():
     reddit_id = check_ongoing()
@@ -24,11 +13,11 @@ def save_videos_data():
     
     reddit_details = read_json(reddit_id)
 
-    generated_date_human_readable = __convert_timestamp_to_date(reddit_details["generated_date"])
+    generated_date_human_readable = format_sri_lankan_time(reddit_details["generated_date"])
 
     # Convert timestamps to human-readable format for all platforms
     for info in reddit_details["upload_info"]:
-        info["upload_date"] = __convert_timestamp_to_date(info["upload_date"])
+        info["upload_date"] = format_sri_lankan_time(info["upload_date"])
 
     video = VideosCreate(
         reddit_id=reddit_details["id"],
