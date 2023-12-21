@@ -47,7 +47,7 @@ def setup_logger():
             }
         )
 
-        logging.basicConfig(filename='nova_redditautogen.log', level=logging.INFO, format=FORMAT_SAVE)
+        logging.basicConfig(filename='nova_threadtalk.log', level=logging.INFO, format=FORMAT_SAVE)
 
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
@@ -66,3 +66,13 @@ def setup_logger():
 
 def get_logger():
     return logging.getLogger()
+
+
+
+def read_log():
+    try:
+        with open("nova_threadtalk.log", "r") as log_file:
+            log_content = log_file.readlines()
+        return {"log_content": log_content}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Log file not found")
