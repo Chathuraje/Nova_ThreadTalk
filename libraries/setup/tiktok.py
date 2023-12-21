@@ -34,7 +34,7 @@ def generate_random_string(length):
     return ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~', k=length))
 
 def get_authorization_url(request, CLIENT_KEY):
-    REDIRECT_URI = request.url_for("callback")
+    REDIRECT_URI = request.url_for("tiktok_auth_callback")
     
     csrf_state = generate_random_string(6)
     code_verifier = generate_random_string(128)
@@ -90,7 +90,7 @@ def save_token_data(token_data):
 
 def get_access_token(request, code, code_verifier):
     config = get_config()
-    REDIRECT_URI = request.url_for("callback")
+    REDIRECT_URI = request.url_for("tiktok_auth_callback")
     
     token_url = 'https://open.tiktokapis.com/v2/oauth/token/'
     params = {
@@ -107,7 +107,7 @@ def get_access_token(request, code, code_verifier):
     
     
     
-def tiktok_callback(request, code, scopes, state):
+def tiktok_auth_callback(request, code, scopes, state):
     TIKTOK_PATH = 'secrets/tiktok/threadtalk.pickle'
     if not os.path.exists(TIKTOK_PATH):
         logger.error('No authorization data found. Exiting...')

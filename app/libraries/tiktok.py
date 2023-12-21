@@ -17,8 +17,8 @@ def setup_tiktok(request):
     return tiktok.setup_tiktok(request)
 
 
-def tiktok_callback(request, code, scopes, state):
-    tiktok.tiktok_callback(request, code, scopes, state)
+def tiktok_auth_callback(request, code, scopes, state):
+    tiktok.tiktok_auth_callback(request, code, scopes, state)
     
     logger.info('TikTok login complete.')
     return None
