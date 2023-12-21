@@ -15,6 +15,9 @@ import requests
 import math
 from tqdm import tqdm 
 import time
+from libraries.setup import tiktok
+from datetime import datetime, timedelta
+
 
 from utils.log import setup_logger, get_logger
 
@@ -22,6 +25,51 @@ from utils.log import setup_logger, get_logger
 setup_logger()
 logger = get_logger()
     
+    
+def refresh_token(creds):
+    REFRESH_TOKEN_ENDPOINT = 'https://open.tiktokapis.com/v2/oauth/token/'
+    
+    if not creds or 'refresh_token' not in creds:
+        logger.error('Refresh token not found. Exiting...')
+        return None
+    
+    config = tiktok.get_config()
+    
+    params = {
+        'client_key': config['client_key'],
+        'client_secret': config['client_secret'],
+        'grant_type': 'refresh_token',
+        'refresh_token': creds['refresh_token'],
+    }
+    
+    response = requests.post(REFRESH_TOKEN_ENDPOINT, data=params)
+    
+    if response.status_code == 200:
+        token_data = response.json()
+        tiktok.save_token_data(token_data)
+        logger.info('Token refreshed successfully')
+        return token_data
+    else:
+        error_response = response.json()
+        logger.error(f'Token refresh failed: {error_response}')
+        return None
+    
+    
+def is_token_valid(creds):
+
+    if creds and creds.get('expires_at'):
+        expiration_time = datetime.utcfromtimestamp(creds['expires_at'])
+        return expiration_time > datetime.utcnow()
+    else:
+        return False    
+    
+def is_token_expired(creds):
+    expiration_time = creds.get('expires_at')
+    if not expiration_time:
+        return True
+    
+    expiration_datetime = datetime.utcfromtimestamp(expiration_time)
+    return expiration_datetime <= datetime.utcnow()  
     
 def auth():
     TOKEN_PATH = 'secrets/tiktok/threadtalk.pickle'
@@ -34,13 +82,15 @@ def auth():
             with open(TOKEN_PATH, 'rb') as token:
                 creds = pickle.load(token)
                 logger.info(f'Credentials loaded from pickle file')
-            # if not creds or not creds.valid:
-            #     if creds and creds.expired and creds.refresh_token:
-            #         logger.info('Refreshing credentials')
-            #         creds.refresh(google.auth.transport.requests.Request()) 
-            #     else:
-            #         logger.error(f'Error loading credentials from pickle file. Needs to be refreshed.')
-            #         return None
+                
+            is_valid = is_token_valid(creds)
+            if not creds or not is_valid:
+                if creds and is_token_expired(creds) and creds.get('refresh_token'):
+                    logger.info('Refreshing credentials')
+                    refresh_token(creds)
+                else:
+                    logger.error(f'Error loading credentials from pickle file. Needs to be refreshed.')
+                    return None
                         
             return creds
         else:
@@ -81,7 +131,6 @@ def initialize_video_upload(access_token, video_path, tiktok_details):
     
     url = 'https://open.tiktokapis.com/v2/post/publish/inbox/video/init/'
 
-    # Set headers
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json; charset=UTF-8'
