@@ -24,7 +24,7 @@ def setup_tiktok(request: Request):
     
     return {'message': 'Please click this url', 'auth_url': auth_url}
 
-@router.get('/tiktok_auth_callback')
+@router.get('/tiktok_auth_callback', include_in_schema=False)
 def tiktok_auth_callback(request: Request, code: str, scopes: str, state: str):
     tiktok.tiktok_auth_callback(request, code, scopes, state)
     

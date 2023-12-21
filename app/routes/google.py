@@ -24,7 +24,7 @@ def setup_google(request: Request):
     
     return {'message': 'Please click this url', 'auth_url': auth_url}
 
-@router.get('/google_auth_callback')
+@router.get('/google_auth_callback', include_in_schema=False)
 def google_auth_callback(request: Request, code: str):
     google.google_callback(request, code)
     
