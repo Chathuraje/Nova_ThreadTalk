@@ -19,8 +19,7 @@ def initialize_openai():
 
 def generate_chat_completion(client, messages):
     if STAGE == "DEVELOPMENT":
-        return "This is for development only."
-        
+        return "This is a development message.", False
     try:
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -29,7 +28,10 @@ def generate_chat_completion(client, messages):
             temperature=0.7,
             n=1
         )
-        return completion.choices[0].message.content
+        
+        response = completion.choices[0].message.content
+        is_done = completion.choices[0].finish_reason != 'stop'
+        return response, is_done
 
     except Exception as e:
         logger.error(f"Error generating GPT: {e}")
@@ -37,20 +39,19 @@ def generate_chat_completion(client, messages):
 
 def ask_gpt(client, prompt, conversation):
     conversation.append({'role': 'system', 'content': prompt})
-    conversation_response = generate_chat_completion(client, conversation)
+    response, is_done = generate_chat_completion(client, conversation)
     
-    if conversation_response is None:
-        # Retry after a delay if the first attempt fails
-        time.sleep(20)
-        conversation_response = generate_chat_completion(client, conversation)
-
-    return conversation_response
+    return response, is_done
 
 def ask(client, prompt, conversation=[]):
-    logger.info(f" Asking GPT: {prompt}")
+    response = None
+    is_done = True
     
-    output = ask_gpt(client, prompt, conversation)
-    output = output.replace('"', '')
+    while response is None or is_done:
+        logger.info(f"Waiting for conversation...")
+        response, is_done = ask_gpt(client, prompt, conversation)
+    
+    output = response.replace('"', '')
     
     return output
 
@@ -93,10 +94,10 @@ def get_meta_data():
             youtube_details = __get_meta_data(client, video_name, platform='youtube')
             reddit_details['meta_tags'].append(youtube_details)
 
-        # if not tiktok_exists:
-        #     logger.info(f"Generating meta tags for TikTok...")
-        #     tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
-        #     reddit_details['meta_tags'].append(tiktok_details)
+        if not tiktok_exists:
+            logger.info(f"Generating meta tags for TikTok...")
+            tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+            reddit_details['meta_tags'].append(tiktok_details)
 
         update_json(reddit_details)
     
@@ -127,7 +128,7 @@ def __get_meta_data(client, video_name, platform):
     logger.info(f"Title: {title_output}")
 
     # Generate description
-    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, limite use less than 100 words"
+    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, limite use less than 100 words, do not add any extra context and do not add extra keywords."
     description_output = ask(client, description_prompt)
     logger.info(f"Description: {description_output}")
     

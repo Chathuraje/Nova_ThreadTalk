@@ -5,7 +5,6 @@ import threading
 import time
 import math
 from utils.log import setup_logger, get_logger
-from config.config import VIDEO_WIDTH, VIDEO_LENGTH
 from tqdm import tqdm
 import os
 import random
@@ -15,7 +14,7 @@ from utils.time import get_current_sri_lankan_time
 setup_logger()
 logger = get_logger()
 
-
+VIDEO_WIDTH = 2160
 class ProgressFfmpeg(threading.Thread):
     def __init__(self, vid_duration_seconds, progress_update_callback):
         threading.Thread.__init__(self, name="ProgressFfmpeg")
@@ -67,6 +66,7 @@ def __check_if_video_exists(reddit_id, reddit):
         return False
 
 def make_final_video():
+    VIDEO_LENGTH = 60
     reddit_id = check_ongoing()
     reddit = read_json(reddit_id)
     

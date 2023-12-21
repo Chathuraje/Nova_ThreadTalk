@@ -3,21 +3,11 @@ import configparser
 import os
 from dotenv import load_dotenv
 
-
 # Access config.ini file
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 STAGE = config.get('Settings', 'STAGE')
-VIDEO_LENGTH = int(config.get('Settings', 'VIDEO_LENGTH'))
-MIN_COMMENT_WORDS = int(config.get('Settings', 'MIN_COMMENT_WORDS'))
-MAX_COMMENT_WORDS = int(config.get('Settings', 'MAX_COMMENT_WORDS'))
-SCREENSHOT_WIDTH = int(config.get('Settings', 'SCREENSHOT_WIDTH'))
-SCREENSHOT_HEIGHT = int(config.get('Settings', 'SCREENSHOT_HEIGHT'))
-COMMENT_LIMIT = int(config.get('Settings', 'COMMENT_LIMIT'))
-VIDEO_WIDTH = int(config.get('Settings', 'VIDEO_WIDTH'))
-VIDEO_HEIGHT = int(config.get('Settings', 'VIDEO_HEIGHT'))
-
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,6 +20,9 @@ REDDIT_PASSWORD = os.getenv("REDDIT_PASSWORD")
 ELEVENLABS_API_KEYS = os.getenv("ELEVENLABS_API_KEYS").split(",")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TIKTOK_APP_ID = os.getenv("TIKTOK_APP_ID")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
+TIKTOK_CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY")
 
 if STAGE == "DEVELOPMENT":
     MONGODB_URL = os.getenv("MONGODB_DEVELOPMENT_URL")
@@ -42,4 +35,16 @@ elif STAGE == "PRODUCTION":
     MONGODB_USERNAME = os.getenv("MONGODB_PRODUCTION_USERNAME")
     MONGODB_PASSWORD = os.getenv("MONGODB_PRODUCTION_PASSWORD")
     TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_PRODUCTION_CHANNEL_ID")
+        
+        
+def set_mode(changed_mode):
+    global STAGE
+    config['Settings']['STAGE'] = changed_mode
+    
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+        
+    STAGE = changed_mode
+    
+    return config['Settings']['STAGE']
     

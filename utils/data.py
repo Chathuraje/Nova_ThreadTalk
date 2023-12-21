@@ -57,15 +57,15 @@ def check_ongoing():
         return ""
     
 
-def create_json(data):
-    file_path = f"storage/{data['id']}/data/video.json"
+def create_json(reddit_id):
+    file_path = f"storage/{reddit_id}/data/video.json"
 
     with open(file_path, 'w') as f:
         json.dump({
-            'id': data['id'],
-            'subreddit': data['subreddit'],
-            'title': data['title'],
-            'url': data['url'],
+            'id': reddit_id,
+            'subreddit': "",
+            'title': "",
+            'url': "",
             'name': "",
             'voice': False,
             'comments': [],
@@ -92,6 +92,30 @@ def update_json(data):
         
 def read_json(reddit_id):
     file_path = f"storage/{reddit_id}/data//video.json"
+    with open(file_path, 'r') as json_file:
+        data = json.load(json_file)
+        
+    return data
+
+
+def create_not_found_json(reddit_id):
+    file_path = "storage/data/not_found.json"
+
+    not_found = read_not_found_json()
+    not_found.append(reddit_id)
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    with open(file_path, "w") as json_file:
+        json.dump(not_found, json_file, indent=2)
+
+def read_not_found_json():
+    file_path = f"storage/data/not_found.json"
+    
+    if not os.path.exists(file_path):
+        return []
+    
     with open(file_path, 'r') as json_file:
         data = json.load(json_file)
         

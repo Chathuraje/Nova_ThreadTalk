@@ -3,50 +3,48 @@ import google.auth
 import google.auth.transport.requests
 import google.oauth2.credentials
 import pickle
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from utils.log import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
-from utils.time import get_current_sri_lankan_time
+from utils.time import get_time_after_15_minutes, get_time_after_15_minutes_in_timestamp
 from config.config import STAGE
-import json
-from datetime import datetime
+import os
 
 setup_logger()
 logger = get_logger()
 
-SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
-# define the path to the token.pickle file
-
-def authenticate():
-    TOKEN_PATH = f'config/google/digitix.pickle'
+def auth(pickle_file):
+    TOKEN_PATH = os.path.join('config/google/', pickle_file)
+    logger.info(f'Trying to Load credentials from pickle file: {pickle_file}')
     
     creds = None
-    if os.path.exists(TOKEN_PATH):
-        with open(TOKEN_PATH, 'rb') as token:
-            creds = pickle.load(token)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(google.auth.transport.requests.Request())
+
+    try:
+        if os.path.exists(TOKEN_PATH):
+            with open(TOKEN_PATH, 'rb') as token:
+                creds = pickle.load(token)
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    logger.info('Refreshing credentials')
+                    creds.refresh(google.auth.transport.requests.Request()) 
+                else:
+                    logger.error(f'Error loading credentials from pickle file: {pickle_file}. Needs to be refreshed.')
+                    return None
+                        
+            return creds
         else:
-            # create the OAuth2 flow for user authorization
-            JSON_PATH = f'config/google/digitix.json'
-            flow = InstalledAppFlow.from_client_secrets_file(
-                JSON_PATH, scopes=SCOPES)
-            creds = flow.run_local_server(port=0)
-            # save the credentials to the token.pickle file for later use
-            
-            auth_url, _ = flow.authorization_url(prompt='consent')
-            
-            # save the credentials for next time
-            with open(TOKEN_PATH, 'wb') as token:
-                pickle.dump(creds, token)
-    # return the authenticated credentials
-    return creds
+            logger.error(f'Token file not found: {pickle_file}')
+            return None
+    except Exception as e:
+            logger.error(f'Error loading credentials from pickle file: {e}')
 
 
-# build the YouTube API client
+def authenticate():
+    pickle_file = 'digitix.pickle'
+    return auth(pickle_file)
+
+
 def build_youtube_client(creds):
     return build('youtube', 'v3', credentials=creds)
 
@@ -75,6 +73,11 @@ def upload_to_youtube():
     creds = authenticate()
     youtube_client = build_youtube_client(creds)
     
+    upload_video(reddit_details, youtube_client)
+    
+    
+
+def upload_video(reddit_details, youtube_client):
     video_id = reddit_details['id']
     meta_tags = reddit_details['meta_tags']
     
@@ -87,15 +90,6 @@ def upload_to_youtube():
     description = youtube_details['description']
     tags = youtube_details['tags']
     
-    file_path = 'storage/random_date.json'
-    with open(file_path, 'r') as file:
-        json_data = json.load(file)
-    selected_entry = next(entry for entry in json_data if not entry['selected'])
-    timestamp_str = selected_entry['timestamp']
-    scheduled_publish_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S%z')
-    
-    logger.info(f"Uploading video to YouTube at {scheduled_publish_time.isoformat()}")
-        
     request_body = {
         'snippet': {
         'categoryId': 22,
@@ -106,7 +100,7 @@ def upload_to_youtube():
     'status': {
         'privacyStatus': 'private',
         'selfDeclaredMadeForKids': False,
-        'publishAt': scheduled_publish_time.isoformat()
+        'publishAt': get_time_after_15_minutes()
     },
     'notifySubscribers': True
     }
@@ -129,37 +123,15 @@ def upload_to_youtube():
     video_url = f'https://www.youtube.com/watch?v={video_id}'
     logger.info(f'Video URL is: {video_url}')
     
-    selected_entry['selected'] = True
-    with open(file_path, 'w') as file:
-        json.dump(json_data, file, indent=2)
-        
-    # youtube_set_active(youtube_client, video_id)
-    
     reddit_details['upload_info'].append({
         'platform': 'youtube',
         'id': video_id,
         'url': video_url,
         'status': 'uploaded',
-        'upload_date': get_current_sri_lankan_time()
+        'upload_date': get_time_after_15_minutes_in_timestamp()
     })
     
     update_json(reddit_details)
-        
-        
-def youtube_set_active(youtube, video_id: str):
-    
-    request = youtube.videos().update(
-    part='status',
-    body={
-        'id': video_id,
-        'status': {
-            'privacyStatus': 'public'
-        }})
-    
-    request.execute()
-    video_url = f'https://www.youtube.com/watch?v={video_id}'
-    logger.info(f'Video URL is: {video_url}')
-       
         
        
     

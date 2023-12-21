@@ -1,9 +1,13 @@
 import json
 from playwright.sync_api import ViewportSize, sync_playwright
 from utils.log import setup_logger, get_logger
-from config.config import SCREENSHOT_HEIGHT, SCREENSHOT_WIDTH, COMMENT_LIMIT, REDDIT_PASSWORD, REDDIT_USERNAME
-from utils.data import read_reddit_json, check_ongoing, create_json, update_json
+from config.config import REDDIT_PASSWORD, REDDIT_USERNAME
+from utils.data import read_reddit_json, check_ongoing, read_json, update_json
 import os
+
+SCREENSHOT_HEIGHT = 800
+SCREENSHOT_WIDTH = 400
+COMMENT_LIMIT = 5
 
 setup_logger()
 logger = get_logger()
@@ -33,15 +37,12 @@ def __login_to_reddit(page):
                 # The div element is empty, no error
                 pass
             else:
-                # The div contains an error message
                 logger.error("Your reddit credentials are incorrect! Please check your credentials and try again.")
-                exit()
         else:
             logger.info("Login successful!")
             pass
     except Exception as e:
         logger.error(f"Error logging in to Reddit: {e}")
-        exit()
     
 def __launching_browser(cookie_file, p):
     browser = p.chromium.launch(
@@ -150,7 +151,13 @@ def get_screenshots_of_reddit_posts():
         
     
     reddit_post = read_reddit_json(reddit_id)
-    video_info = create_json(reddit_post)
+    video_info = read_json(reddit_id)
+
+    
+    video_info['subreddit'] = reddit_post['subreddit']
+    video_info['title'] = reddit_post['title']
+    video_info['url'] = reddit_post['url']
+    
     
     cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
 
@@ -168,9 +175,9 @@ def get_screenshots_of_reddit_posts():
         post_list = __get_thread_screenshots(reddit_post, page)
         comment_list = __get_comment_screenshots(reddit_post, page)
         
+        
         video_info['name'] = post_list['name']
         video_info['comments'] = comment_list
-        
         update_json(video_info)
         
         browser.close()   

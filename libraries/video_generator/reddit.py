@@ -4,11 +4,11 @@ from praw.models import MoreComments
 from bs4 import BeautifulSoup
 from markdown import markdown
 import re
-from config.config import MAX_COMMENT_WORDS, MIN_COMMENT_WORDS, COMMENT_LIMIT, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
+from config.config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 from utils.database.schemas import does_reddit_id_exist
 from utils.folders import create_folders
-from utils.data import create_reddit_json, update_reddit_json, check_ongoing
+from utils.data import create_reddit_json, update_reddit_json, check_ongoing, create_json, update_json, create_not_found_json, read_not_found_json
 
 setup_logger()
 logger = get_logger()
@@ -114,11 +114,13 @@ def __profanity_load():
     return profanity_words
 
 def __get_top_reddit_comment(reddit, post_id: str):
+    MIN_COMMENT_WORDS = 5
+    MAX_COMMENT_WORDS = 25 
+
     try:
         submission = reddit.submission(id=post_id)
     except Exception as e:
         logger.error(f"Failed to retrieve submission with ID {post_id}: {e}")
-        return None
     
     profanity_words = __profanity_load()
     data = []
@@ -137,8 +139,13 @@ def __get_top_reddit_comment(reddit, post_id: str):
             "url": comment.permalink
         })
         
+        COMMENT_LIMIT = 5
         if len(data) == (COMMENT_LIMIT*2):
             break
+        
+    if len(data) == 0:
+        create_not_found_json(post_id)
+        logger.error("Suitable comment not found. Please try different subreddit or try again.")
     
     return data
 
@@ -173,22 +180,38 @@ def get_top_reddit_post(subredditName: str):
         if does_reddit_id_exist(post.id):
             logger.info(f"Post {post.id} already exists in the database. Skipping...")
             continue
+        
+        if post.id in read_not_found_json():
+            logger.info(f"Post {post.id} already exists in the not found json. Skipping...")
+            continue
+        
 
         logger.info(f"Post {post.id} passed initial filters. Processing comments...")
         
-        create_folders(post.id)
-        create_reddit_json(post.id)
-        
         comment_data = __get_top_reddit_comment(reddit, post.id)
         
-        data = {
-            "id": post.id,
-            "subreddit": subredditName,
-            "title": post.title,
-            "url": post.url,
-            "comments": comment_data
-        }
-        
-        update_reddit_json(data)
-        break
+        if comment_data != []:
+            create_folders(post.id)
+            create_reddit_json(post.id)
+            video_info = create_json(post.id)
+            
+            data = {
+                "id": post.id,
+                "subreddit": subredditName,
+                "title": post.title,
+                "url": post.url,
+                "comments": comment_data
+            }
+            
+            update_reddit_json(data)
+            
+            video_info['subreddit'] = subredditName
+            video_info['title'] = post.title
+            video_info['url'] = post.url
+            update_json(video_info)
+            return None
+    
+    logger.error("Suitable post not found. Please try different subreddit or try again.")
+    return None
+    
         

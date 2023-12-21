@@ -1,6 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, validator
-from config.db import video_collection
+from libraries.setup.db import video_collection
 from utils.log import setup_logger, get_logger
 
 setup_logger()
