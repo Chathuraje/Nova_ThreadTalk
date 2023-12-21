@@ -14,9 +14,9 @@ import os
 setup_logger()
 logger = get_logger()
 
-def auth(pickle_file):
-    TOKEN_PATH = os.path.join('config/google/', pickle_file)
-    logger.info(f'Trying to Load credentials from pickle file: {pickle_file}')
+def auth():
+    TOKEN_PATH = 'secrets/google/threadtalk.pickle'
+    logger.info(f'Trying to Load credentials from pickle file')
     
     creds = None
 
@@ -29,20 +29,19 @@ def auth(pickle_file):
                     logger.info('Refreshing credentials')
                     creds.refresh(google.auth.transport.requests.Request()) 
                 else:
-                    logger.error(f'Error loading credentials from pickle file: {pickle_file}. Needs to be refreshed.')
+                    logger.error(f'Error loading credentials from pickle file. Needs to be refreshed.')
                     return None
                         
             return creds
         else:
-            logger.error(f'Token file not found: {pickle_file}')
+            logger.error(f'Token file not found')
             return None
     except Exception as e:
             logger.error(f'Error loading credentials from pickle file: {e}')
 
 
 def authenticate():
-    pickle_file = 'digitix.pickle'
-    return auth(pickle_file)
+    return auth()
 
 
 def build_youtube_client(creds):
