@@ -7,8 +7,12 @@ setup_logger()
 logger = get_logger()
 
 
-router = APIRouter()
+router = APIRouter(
+    tags=["Root"],
+)
 
 @router.get("/")
 def read_root():
     return {"message": "Hello, this is your FastAPI application!"}
+
+
