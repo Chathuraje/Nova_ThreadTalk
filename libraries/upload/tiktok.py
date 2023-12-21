@@ -167,12 +167,19 @@ def initialize_video_upload(access_token, video_path, tiktok_details):
 
     body_json = json.dumps(body)
 
-    response = requests.post(url, headers=headers, data=body_json)
-    
-    if response.status_code == 200:
+    if STAGE == 'PRODUCTION':
+        response = requests.post(url, headers=headers, data=body_json)
+        code = response.status_code
         data = response.json()['data']
         publish_id = data['publish_id']
         upload_url = data['upload_url']
+        
+    elif STAGE == 'DEVELOPMENT':
+        code = 200
+        publish_id = "v_inbox_file~v2.12346789"
+        upload_url = "https://testing_development.com/video/?upload_id=6790&upload_token=Xa123"
+        
+    if code == 200:
         return publish_id, upload_url, video_size, chunk_size, total_chunk_count
     else:
         logger.error(f"Error: {response.status_code}, {response.text}")
@@ -194,7 +201,7 @@ def upload_video_chunk(upload_url, chunk_start, chunk_end, video_path):
     return response.status_code
     
     
-def upload_chunk_by_chunk(reddit_details, video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id):
+def upload_chunk_by_chunk(video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id):
     for chunk in tqdm(range(total_chunk_count)):
         chunk_start = chunk * chunk_size
         chunk_end = min(chunk_start + chunk_size - 1, video_size - 1)
@@ -202,23 +209,20 @@ def upload_chunk_by_chunk(reddit_details, video_path, chunk_size, total_chunk_co
         if chunk == total_chunk_count - 1:
             chunk_end = video_size - 1
                 
-        success = upload_video_chunk(upload_url, chunk_start, chunk_end, video_path)
+        if STAGE == 'DEVELOPMENT':
+            success = 206
+            if chunk == total_chunk_count - 1:
+                success = 201
+        if STAGE == 'PRODUCTION':
+            success = upload_video_chunk(upload_url, chunk_start, chunk_end, video_path)
+        
+        
         if success == 201:
             time.sleep(5)
             logger.info(f'Video uploaded successfully.')
-            video_url = f'https://www.tiktok.com/@threadtalk/video/{publish_id}'
+            video_url = f'https://www.tiktok.com/@threadtalk/testing_development/{publish_id}'
             logger.info(f"Video uploaded successfully: {video_url}")
-            
-            video_id = reddit_details['id']       
-            reddit_details['upload_info'].append({
-                'platform': 'tiktok',
-                'id': video_id,
-                'url': video_url,
-                'status': 'uploaded',
-                'upload_date': get_current_sri_lankan_time()
-            })
-                        
-            update_json(reddit_details)
+            return video_url
                         
         elif success == 206:
             continue
@@ -242,7 +246,20 @@ def upload_video(reddit_details, creds):
             logger.info(f'Publish ID: {publish_id}, URL: {upload_url}')
             
             if publish_id and upload_url:
-                upload_chunk_by_chunk(reddit_details, video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id)
+                video_url = upload_chunk_by_chunk(video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id)
+                
+                if video_url is not None:
+                    video_id = reddit_details['id']       
+                    reddit_details['upload_info'].append({
+                        'platform': 'tiktok',
+                        'id': video_id,
+                        'url': video_url,
+                        'status': 'uploaded',
+                        'upload_date': get_current_sri_lankan_time()
+                    })
+                        
+                update_json(reddit_details)
+                
             else:
                 logger.error(f'Error uploading video: {publish_id}, {upload_url}')
                 return None
