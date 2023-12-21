@@ -86,7 +86,7 @@ def download_file(drive_service, file_id, file_name, destination_folder):
 
     done = False
     start_time = time.time()
-    with tqdm(total=100, desc=f"Downloading {file_name}", unit="%", unit_scale=True) as pbar:
+    with tqdm(total=100, desc=f"Downloading...", unit="%", unit_scale=True) as pbar:
         while not done:
             status, done = downloader.next_chunk()
             progress = int(status.progress() * 100)
