@@ -11,10 +11,6 @@ router = APIRouter(
     tags=["Generate Videos"],
 )
 
-@router.get("/")
-def read_root():
-    return {"message": "Hello, this is your FastAPI application!"}
-
 class SubredditEnum(str, Enum):
     AskReddit = "AskReddit"
 
