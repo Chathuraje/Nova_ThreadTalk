@@ -67,7 +67,7 @@ def get_config():
     with open(TIKTOK_PATH, 'r') as f:
         config = json.load(f)
         
-    return config['installed'] 
+    return config['auth'] 
     
     
 def setup_tiktok(request):
