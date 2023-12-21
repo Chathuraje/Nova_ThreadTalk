@@ -25,8 +25,8 @@ def setup_tiktok(request: Request):
     return {'message': 'Please click this url', 'auth_url': auth_url}
 
 @router.get('/callback')
-def callback(request: Request, code: str):
-    # tiktok.tiktok_callback(request, code)
+def callback(request: Request, code: str, scopes: str, state: str):
+    tiktok.tiktok_callback(request, code, scopes, state)
     
-    return {'message': 'TikTok login complete.'}
+    return {"code": code, "scopes": scopes, "state": state}
     
