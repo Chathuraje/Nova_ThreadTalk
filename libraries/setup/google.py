@@ -35,8 +35,10 @@ def google_callback(request, code):
     JSON_PATH = 'secrets/google/threadtalk.json'
     flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
     flow.redirect_uri = request.url_for("google_auth_callback")
-    creds = flow.fetch_token(code=code)
-        
+    flow.fetch_token(code=code)
+    
+    creds = flow.credentials
+
     PICKLE_FILE = JSON_PATH.replace('.json', '.pickle')
     with open(PICKLE_FILE, 'wb') as token:
         pickle.dump(creds, token)
