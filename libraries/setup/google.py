@@ -31,20 +31,26 @@ def upload_json(file):
 
 
 def google_callback(request, code):
-    
-    JSON_PATH = 'secrets/google/threadtalk.json'
-    flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
-    flow.redirect_uri = request.url_for("google_auth_callback")
-    flow.fetch_token(code=code)
-    
-    creds = flow.credentials
+    try:
+        JSON_PATH = 'secrets/google/threadtalk.json'
+        SCOPES = ['your', 'desired', 'scopes']  # Replace with the actual scopes you need
 
-    PICKLE_FILE = JSON_PATH.replace('.json', '.pickle')
-    with open(PICKLE_FILE, 'wb') as token:
-        pickle.dump(creds, token)
-                
-        logger.info(f'Created token file')
-    return creds
+        flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
+        flow.redirect_uri = request.url_for("google_auth_callback")
+        flow.fetch_token(code=code)
+        
+        creds = flow.credentials
+
+        PICKLE_FILE = JSON_PATH.replace('.json', '.pickle')
+        with open(PICKLE_FILE, 'wb') as token:
+            pickle.dump(creds, token)
+            
+            logger.info(f'Created token file')
+
+        return creds
+
+    except Exception as e:
+        logger.error(f'An error occurred in google_callback: {e}')
         
     
 
