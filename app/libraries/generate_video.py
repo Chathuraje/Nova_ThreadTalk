@@ -43,13 +43,13 @@ def generate_short_video(subreddit):
     tiktok.upload_to_tikTok()
     logger.info("Videos uploaded successfully!")
     
-    logger.info("Saving data to database...")
-    data = save.save_videos_data()
-    logger.info("Data saved successfully!")
+    # logger.info("Saving data to database...")
+    # data = save.save_videos_data()
+    # logger.info("Data saved successfully!")
 
-    logger.info("Sending message to telegram...")
-    telegram.send_telegram_message(data)
-    logger.info("Message sent successfully!")   
+    # logger.info("Sending message to telegram...")
+    # telegram.send_telegram_message(data)
+    # logger.info("Message sent successfully!")   
     
     
     logger.info("Waiting for next video...")
