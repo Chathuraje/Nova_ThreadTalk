@@ -2,8 +2,7 @@ from fastapi import APIRouter
 from utils.log import setup_logger, get_logger
 from app.libraries import google
 from fastapi import Request
-from fastapi import FastAPI, File, UploadFile, Request
-from fastapi.responses import JSONResponse
+from fastapi import File, UploadFile, Request
 
 setup_logger()
 logger = get_logger()
@@ -13,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post('/upload_json')
+@router.post('/upload_json_google')
 def upload_json(file: UploadFile = File(...)):
     google.upload_json(file)
     
