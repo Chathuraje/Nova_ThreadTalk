@@ -33,7 +33,6 @@ def upload_json(file):
 def google_callback(request, code):
     try:
         JSON_PATH = 'secrets/google/threadtalk.json'
-        SCOPES = ['your', 'desired', 'scopes']  # Replace with the actual scopes you need
 
         flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
         flow.redirect_uri = request.url_for("google_auth_callback")
