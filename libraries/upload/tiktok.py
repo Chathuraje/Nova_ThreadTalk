@@ -194,7 +194,7 @@ def upload_video_chunk(upload_url, chunk_start, chunk_end, video_path):
     return response.status_code
     
     
-def upload_chunk_by_chunk(reddit_details, video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id, video_id):
+def upload_chunk_by_chunk(reddit_details, video_path, chunk_size, total_chunk_count, video_size, upload_url, publish_id):
     for chunk in tqdm(range(total_chunk_count)):
         chunk_start = chunk * chunk_size
         chunk_end = min(chunk_start + chunk_size - 1, video_size - 1)
