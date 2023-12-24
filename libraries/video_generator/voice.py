@@ -5,7 +5,6 @@ from elevenlabs.api import User
 from config.config import ELEVENLABS_API_KEYS, STAGE
 from utils.data import read_json, check_ongoing, update_json
 from gtts import gTTS
-import os
 
 setup_logger()
 logger = get_logger()

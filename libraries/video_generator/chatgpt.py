@@ -1,8 +1,7 @@
 from openai import OpenAI
 from utils.log import setup_logger, get_logger
 from config.config import OPENAI_API_KEY, STAGE
-import time
-from utils.data import read_json, check_ongoing, update_json, create_json
+from utils.data import read_json, check_ongoing, update_json
 
 setup_logger()
 logger = get_logger()

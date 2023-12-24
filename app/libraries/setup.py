@@ -1,5 +1,4 @@
 from utils.log import setup_logger, get_logger
-import pickle
 from libraries.setup import setup
 
 setup_logger()

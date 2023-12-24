@@ -1,11 +1,6 @@
 from utils.log import setup_logger, get_logger
-import os
 import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
-from libraries.upload.youtube import auth
-from fastapi.responses import RedirectResponse
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
 from pathlib import Path
 
 setup_logger()

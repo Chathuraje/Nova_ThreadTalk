@@ -1,4 +1,3 @@
-from pymongo import mongo_client
 from pymongo.mongo_client import MongoClient
 from config.config import MONGODB_URL, MONGODB_PASSWORD, MONGODB_USERNAME
 
