@@ -8,6 +8,8 @@ from libraries.upload import youtube
 from libraries.upload import tiktok
 from libraries.video_generator import telegram
 from utils.log import setup_logger, get_logger
+from utils import data
+
 
 setup_logger()
 logger = get_logger()
@@ -53,3 +55,19 @@ def generate_short_video(subreddit):
     
     
     logger.info("Waiting for next video...")
+    
+    
+def get_video_data(video_id):
+    logger.info("Getting video data...")
+    video_data = data.read_json(video_id)
+    logger.info("Data retrieved successfully!")
+    
+    return video_data
+
+
+def get_ongoing_videos():
+    logger.info("Getting ongoing videos...")
+    ongoing_videos = data.check_ongoing()
+    logger.info("Ongoing videos retrieved successfully!")
+    
+    return ongoing_videos

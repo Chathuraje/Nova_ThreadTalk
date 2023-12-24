@@ -92,6 +92,10 @@ def update_json(data):
         
 def read_json(reddit_id):
     file_path = f"storage/{reddit_id}/data//video.json"
+    
+    if not os.path.exists(file_path):
+        logger.error("Could not find the file")
+    
     with open(file_path, 'r') as json_file:
         data = json.load(json_file)
         
