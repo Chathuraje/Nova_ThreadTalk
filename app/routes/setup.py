@@ -12,4 +12,8 @@ router = APIRouter(
 
 @router.get("/initial_setup")
 def initial_setup():
-    setup.initial_setup()
+    try:
+        setup.initial_setup()
+        return {"message": "Initial setup complete."}
+    except Exception as e:
+        logger.error(f"Error during initial setup: {e}")

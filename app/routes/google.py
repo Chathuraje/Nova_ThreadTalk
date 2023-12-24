@@ -14,19 +14,24 @@ router = APIRouter(
 
 @router.post('/upload_json_google')
 def upload_json(file: UploadFile = File(...)):
-    google.upload_json(file)
-    
-    return {'message': 'Upload complete.'}
+    try:
+        google.upload_json(file)
+        return {'message': 'Upload complete.'}
+    except Exception as e:
+        logger.error(f"Error uploading JSON file to Google: {e}")
 
 @router.get('/setup_google')
 def setup_google(request: Request):
-    auth_url = google.setup_google(request)
-    
-    return {'message': 'Please click this url', 'auth_url': auth_url}
+    try:
+        auth_url = google.setup_google(request)
+        return {'message': 'URL generated successfully.', 'auth_url': auth_url}
+    except Exception as e:
+        logger.error(f"Error setting up Google authentication: {e}")
 
 @router.get('/google_auth_callback', include_in_schema=False)
 def google_auth_callback(request: Request, code: str):
-    google.google_callback(request, code)
-    
-    return {'message': 'Google login complete.'}
-    
+    try:
+        google.google_callback(request, code)
+        return {'message': 'Google login complete.'}
+    except Exception as e:
+        logger.error(f"Error during Google authentication callback: {e}")
