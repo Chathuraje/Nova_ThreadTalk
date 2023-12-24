@@ -1,5 +1,10 @@
 import os
 import shutil
+from utils.log import setup_logger, get_logger
+
+setup_logger()
+logger = get_logger()
+
 
 def read_all_videos():
     storage_folder = "storage/"
@@ -19,6 +24,11 @@ def delete_video_folder(video_id):
     storage_folder = "storage/"
     folder_path = os.path.join(storage_folder, video_id)
  
-    shutil.rmtree(folder_path)
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+        return {"message": "Video deleted successfully!"}
+        
+    else:
+        logger.info("The file does not exist")
+        return {"message": "The file does not exist"}
     
-    return {"message": "Video deleted successfully!"}
