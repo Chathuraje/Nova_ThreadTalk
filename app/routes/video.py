@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.libraries import generate_video
+from app.libraries import video
 from utils.log import setup_logger, get_logger
 from enum import Enum
 
@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 router = APIRouter(
-    tags=["Generate Videos"],
+    tags=["Videos"],
 )
 
 class SubredditEnum(str, Enum):
@@ -16,6 +16,6 @@ class SubredditEnum(str, Enum):
 
 @router.get("/generate_short_video/{subreddit}")
 def generate_short_video(subreddit: SubredditEnum):
-    generate_video.generate_short_video(subreddit)
+    video.generate_short_video(subreddit)
     
     return {"message": f"Short video successfully generated and uploaded...."}
