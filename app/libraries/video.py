@@ -6,6 +6,7 @@ from libraries.video_generator import chatgpt
 from libraries.video_generator import save
 from libraries.upload import youtube
 from libraries.upload import tiktok
+from utils import storage
 from libraries.video_generator import telegram
 from utils.log import setup_logger, get_logger
 from utils import data
@@ -71,3 +72,17 @@ def get_ongoing_videos():
     logger.info("Ongoing videos retrieved successfully!")
     
     return ongoing_videos
+
+def get_all_videos():
+    logger.info("Getting all videos...")
+    all_videos = storage.read_all_videos()
+    logger.info("All videos retrieved successfully!")
+    
+    return all_videos
+
+def delete_video(video_id):
+    logger.info("Deleting video...")
+    storage.delete_video_folder(video_id)
+    logger.info("Video deleted successfully!")
+    
+    return {"message": "Video deleted successfully!"}

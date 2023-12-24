@@ -31,3 +31,15 @@ def get_ongoing_videos():
     ongoing_videos = video.get_ongoing_videos()
     
     return ongoing_videos
+
+@router.get('/all_videos')
+def get_all_videos():
+    all_videos = video.get_all_videos()
+    
+    return all_videos
+
+@router.get('/delete_video/{video_id}')
+def delete_video(video_id: str):
+    video.delete_video(video_id)
+    
+    return {"message": "Video deleted successfully!"}
