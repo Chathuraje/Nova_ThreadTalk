@@ -15,4 +15,3 @@ def create_folders(reddit_id):
         Path(f"storage/{reddit_id}/data").mkdir(parents=True, exist_ok=True)
     except Exception as e:
         logger.error(f"Error creating folders for {reddit_id}: {e}")
-        exit()
