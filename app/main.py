@@ -4,6 +4,7 @@ from app.routes.google import router as google_routes
 from app.routes.tiktok import router as tiktok_routes
 from app.routes.setup import router as setup_routes
 from app.routes.video import router as video_routes
+from app.routes.schedule import router as schedule_routes
 from fastapi.middleware.cors import CORSMiddleware 
 
 app = FastAPI()
@@ -22,6 +23,7 @@ app.include_router(root_routers)
 app.include_router(google_routes)   
 app.include_router(tiktok_routes)   
 app.include_router(setup_routes)   
+app.include_router(schedule_routes)   
 app.include_router(video_routes)   
 
     
