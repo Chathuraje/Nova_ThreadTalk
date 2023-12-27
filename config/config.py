@@ -1,14 +1,22 @@
 import configparser
 import json
+import os
+from utils.log import setup_logger, get_logger
+
+
+setup_logger()
+logger = get_logger()
 
 def load_configuration():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    STAGE = config.get('Settings', 'STAGE')
-
-    # Load JSON configuration file
+    FILE_PATH = 'secrets/secrets.json'
+    
+    if not os.path.exists(FILE_PATH):
+        logger.error(f"File not found: {FILE_PATH}")
+    
     with open('secrets/secrets.json', 'r') as config_file:
         config_data = json.load(config_file)
+        
+    STAGE = config_data['STAGE']
 
     # Assign configurations based on the STAGE
     configuration = {
