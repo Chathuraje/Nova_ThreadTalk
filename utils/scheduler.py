@@ -16,7 +16,7 @@ def daily_tasks():
         logger.error(f"Error in daily tasks: {e}")
 
 def add_daily_scheduler():
-    scheduler = BackgroundScheduler()
-    scheduler.start()
+    Appscheduler = BackgroundScheduler()
+    Appscheduler.start()
 
-    scheduler.add_job(daily_tasks, 'cron', hour=0, minute=0, timezone=timezone('Asia/Colombo'))
+    Appscheduler.add_job(daily_tasks, 'cron', hour=0, minute=0, timezone=timezone('Asia/Colombo'))

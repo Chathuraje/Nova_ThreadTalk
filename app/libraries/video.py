@@ -42,9 +42,9 @@ def generate_short_video(subreddit="AskReddit"):
     youtube.upload_to_youtube()
     logger.info("Videos uploaded successfully!")
     
-    logger.info("Uploading videos to TikTok")
-    tiktok.upload_to_tikTok()
-    logger.info("Videos uploaded successfully!")
+    # logger.info("Uploading videos to TikTok")
+    # tiktok.upload_to_tikTok()
+    # logger.info("Videos uploaded successfully!")
     
     logger.info("Saving data to database...")
     data = save.save_videos_data()

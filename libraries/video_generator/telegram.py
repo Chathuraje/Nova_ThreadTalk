@@ -58,7 +58,12 @@ def create_message(reddit_details):
 def send_telegram_message(data):
   
     message = create_message(data)
+    send(message)
     
+    
+
+
+def send(message):
     try:
         api_url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
         params = {

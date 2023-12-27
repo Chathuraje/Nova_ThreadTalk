@@ -2,7 +2,7 @@
 
 if __name__ == "__main__":
     from config.config import set_mode
-    STAGE = "DEVELOPMENT" # PRODUCTION or DEVELOPMENT
+    STAGE = "PRODUCTION" # PRODUCTION or DEVELOPMENT
     set_mode(STAGE)
     
     import uvicorn
