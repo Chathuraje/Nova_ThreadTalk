@@ -1,5 +1,6 @@
 from utils.log import setup_logger, get_logger
 from libraries.setup import setup
+from libraries.setup import schedule
 
 setup_logger()
 logger = get_logger()
@@ -15,6 +16,10 @@ def initial_setup():
     logger.info('Checking video resolution...')
     setup.check_video_resolution()
     logger.info('Video resolution checked successfully!')
+    
+    logger.info('Generating Scheduled Timestamps...')
+    schedule.generate_timestamp()
+    logger.info('Scheduled Timestamps generated successfully!')
     
     logger.info('Setup completed successfully!')
     
