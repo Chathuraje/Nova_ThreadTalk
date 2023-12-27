@@ -1,8 +1,8 @@
-from config.config import TELEGRAM_CHANNEL_ID, TELEGRAM_BOT_TOKEN
 from utils.log import setup_logger, get_logger
 from datetime import datetime
 from utils.data import read_json
 import requests
+from config import config
 
 setup_logger()
 logger = get_logger()
@@ -64,10 +64,11 @@ def send_telegram_message(data):
 
 
 def send(message):
+    config_data = config.load_configuration()
     try:
-        api_url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+        api_url = f'https://api.telegram.org/bot{config_data["TELEGRAM_BOT_TOKEN"]}/sendMessage'
         params = {
-            'chat_id': TELEGRAM_CHANNEL_ID,
+            'chat_id': config_data["TELEGRAM_CHANNEL_ID"],
             'text': message
         }
 

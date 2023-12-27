@@ -1,10 +1,12 @@
 from typing import Optional, List
 from pydantic import BaseModel, validator
-from libraries.setup.db import video_collection
+from libraries.setup.db import setup_db
 from utils.log import setup_logger, get_logger
 
 setup_logger()
 logger = get_logger()
+
+video_collection = setup_db()
 
 class UploadInfo(BaseModel):
     platform: str

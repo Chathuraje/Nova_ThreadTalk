@@ -4,11 +4,12 @@ from praw.models import MoreComments
 from bs4 import BeautifulSoup
 from markdown import markdown
 import re
-from config.config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.log import setup_logger, get_logger
 from utils.database.schemas import does_reddit_id_exist
 from utils.folders import create_folders
 from utils.data import create_reddit_json, update_reddit_json, check_ongoing, create_json, update_json, create_not_found_json, read_not_found_json
+from config import config
+
 
 setup_logger()
 logger = get_logger()
@@ -20,11 +21,13 @@ def __get_reddit_client():
     Returns:
         praw.Reddit: Reddit client instance
     """
+    config_data = config.load_configuration()
+
     try:
         reddit_client = praw.Reddit(
-            client_id=REDDIT_CLIENT_ID,
-            client_secret=REDDIT_CLIENT_SECRET,
-            user_agent=REDDIT_USER_AGENT
+            client_id=config_data["REDDIT_CLIENT_ID"],
+            client_secret=config_data["REDDIT_CLIENT_SECRET"],
+            user_agent=config_data["REDDIT_USER_AGENT"]
         )
         logger.info("Reddit client successfully created.")
         return reddit_client

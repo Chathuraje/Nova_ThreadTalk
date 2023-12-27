@@ -1,9 +1,10 @@
 import json
 from playwright.sync_api import ViewportSize, sync_playwright
 from utils.log import setup_logger, get_logger
-from config.config import REDDIT_PASSWORD, REDDIT_USERNAME
 from utils.data import read_reddit_json, check_ongoing, read_json, update_json
 import os
+from config import config
+
 
 SCREENSHOT_HEIGHT = 800
 SCREENSHOT_WIDTH = 400
@@ -19,14 +20,16 @@ def __clear_cookie_by_name(context, cookie_cleared_name):
     context.add_cookies(filtered_cookies)
 
 def __login_to_reddit(page):
+    config_data = config.load_configuration()
+
     try:
         page.goto("https://www.reddit.com/login", timeout=0)
         page.set_viewport_size(ViewportSize(width=1920, height=1080))
         
         page.wait_for_load_state()
         
-        page.locator('[name="username"]').fill(REDDIT_USERNAME)
-        page.locator('[name="password"]').fill(REDDIT_PASSWORD)
+        page.locator('[name="username"]').fill(config_data["REDDIT_USERNAME"])
+        page.locator('[name="password"]').fill(config_data["REDDIT_PASSWORD"])
         page.locator("button[class$='m-full-width']").click()
         page.wait_for_timeout(5000)
         

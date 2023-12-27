@@ -127,7 +127,7 @@ def stop_scheduled_videos():
         else:
             return {"message": "No videos scheduled."}
     else:
-        logger.error(f"Scheduled videos already stopped.")
+        logger.info(f"Scheduled videos already stopped.")
         
 
 def view_scheduled_videos():

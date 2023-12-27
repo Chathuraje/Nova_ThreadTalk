@@ -1,9 +1,18 @@
 from pymongo.mongo_client import MongoClient
-from config.config import MONGODB_URL, MONGODB_PASSWORD, MONGODB_USERNAME
+from config import config
 
-client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_URL}/?retryWrites=true&w=majority")
 
-db = client.NovaRedditAutoGen
+def setup_db():
+    config_data = config.load_configuration()
+    MONGODB_USERNAME = config_data['MONGODB_USERNAME']
+    MONGODB_PASSWORD = config_data['MONGODB_PASSWORD']
+    MONGODB_URL = config_data['MONGODB_URL']
+    
+    client = MongoClient(f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_URL}/?retryWrites=true&w=majority")
 
-video_collection = db["video_collection"]
+    db = client.NovaRedditAutoGen
+
+    video_collection = db["video_collection"]
+    
+    return video_collection
 

@@ -1,6 +1,10 @@
 from bson import ObjectId
 from .models import VideosCreate
-from libraries.setup.db import video_collection
+from libraries.setup.db import setup_db
+
+
+video_collection = setup_db()
+
 
 def __create_video_data(video: VideosCreate):
     video_data = video.dict()
