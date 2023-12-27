@@ -7,11 +7,8 @@ from app.routes.video import router as video_routes
 from app.routes.schedule import router as schedule_routes
 from fastapi.middleware.cors import CORSMiddleware 
 from utils import scheduler
-from libraries.setup import db
 
 app = FastAPI()
-
-db.setup_db()
 
 origins = ['*']
 

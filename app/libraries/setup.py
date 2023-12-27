@@ -4,6 +4,7 @@ from libraries.setup import schedule
 from libraries.video_generator import telegram
 import datetime
 import pytz
+from libraries.setup import db
 
 setup_logger()
 logger = get_logger()
@@ -17,6 +18,10 @@ def upload_json_secrets(file):
 def initial_setup():
     logger.info(f'Starting setup...')
         
+    logger.info(f'Setting up database...')
+    db.setup_db()
+    logger.info(f'Setup database successfully!')
+    
     logger.info('Start downloading background videos...')
     setup.download_background_videos()
     logger.info('Background videos downloaded successfully!')
