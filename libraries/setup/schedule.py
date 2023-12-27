@@ -4,6 +4,7 @@ import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
 from utils.log import setup_logger, get_logger
+from fastapi import HTTPException
 
 setup_logger()
 logger = get_logger()
@@ -38,12 +39,17 @@ def write_to_json_file(data):
 def generate_video():
     print("Generating video..asdasd.")
     
+
+
+scheduler = BackgroundScheduler()
+    
 def schedule_video_generation(scheduler, dateandtime):
     for item in dateandtime:
         schedule_time = datetime.fromisoformat(item["timestamp"])
-        scheduler.add_job(generate_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))         
+        scheduler.add_job(generate_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
+        logger.info(f"Video scheduled for {schedule_time}")      
 
-def schedule_videos(date, num_times):
+def generate_timestamp(date, num_times):
     try:
         times = generate_random_times(date, num_times)
         dateandtime = []
@@ -54,33 +60,67 @@ def schedule_videos(date, num_times):
                 # "selected": False
             })
         write_to_json_file(dateandtime)
-        return {"message": "Video scheduling complete.", "data": dateandtime}
+        return dateandtime
     except Exception as e:
-        logger.error(f"Error during scheduling videos: {e}")
+        logger.error(f"Error during scheduling videos")
       
+
+def check_timestamp_latest():
+    with open("storage/scheduled_videos.json") as file:
+        data = json.load(file)
+
+        now_utc = datetime.now(timezone('UTC'))
+        for item in data:
+            timestamp_str = item['timestamp']
+            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S%z")
+
+            if timestamp < now_utc:
+                logger.error(f"Timestamp {timestamp_str} is in the past.")
+                
+                
 def start_scheduled_videos():
-    try:
+    existing_data = view_scheduled_videos()
+    if existing_data:
+            logger.error("Scheduled videos already started.")
+    else:
+        check_timestamp_latest()
+        if not scheduler.running:
+            scheduler.start()
         with open("storage/scheduled_videos.json") as file:
             data = json.load(file)
-            scheduler = BackgroundScheduler()
-            scheduler.start()
             schedule_video_generation(scheduler, data)
-            return {"message": "Scheduled videos started."}
-    except Exception as e:
-        logger.error(f"Error starting scheduled videos: {e}")  
+            return view_scheduled_videos()
+
+    
+        
         
 def stop_scheduled_videos():
-    try:
-        write_to_json_file([])
-        return {"message": "Scheduled videos stopped."}
-    except Exception as e:
-        logger.error(f"Error stopping scheduled videos: {e}")
+    if scheduler.running:
+        existing_data = view_scheduled_videos()
+        if existing_data:
+            try:
+                jobs = scheduler.get_jobs()
+                
+                for job in jobs:
+                    job.remove()
+                scheduler.shutdown()
+                return {"message": "Scheduled videos stopped."}
+            except Exception as e:
+                logger.error(f"Error stopping scheduled videos: {e}")
+        
+        else:
+            return {"message": "No videos scheduled."}
+    else:
+        logger.error(f"Scheduled videos already stopped.")
         
 
 def view_scheduled_videos():
-    try:
-        with open("storage/scheduled_videos.json") as file:
-            data = json.load(file)
-            return {"message": "Scheduled videos fetched.", "data": data}
-    except Exception as e:
-        logger.error(f"Error viewing scheduled videos: {e}")
+    jobs = scheduler.get_jobs()
+    jobs_info = []
+    for job in jobs:
+        jobs_info.append({
+            "id": job.id,
+            "next_run_time": str(job.next_run_time),
+            "name": job.name
+        })
+    return jobs_info
