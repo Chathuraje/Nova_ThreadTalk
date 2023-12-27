@@ -25,13 +25,13 @@ class CustomStreamHandler(logging.StreamHandler):
 
 def setup_logger():
     global log_setup_done
-    config_data = config.load_configuration()
+    STAGE  = config.get_mode()
     
     if not log_setup_done:
-        if config_data['STAGE'] == "DEVELOPMENT":
+        if STAGE == "DEVELOPMENT":
             FORMAT_LOG = '%(bold_red)s{}%(reset)s %(log_color)s%(levelname)-8s%(reset)s %(green)s%(asctime)s - %(white)s%(message)s'.format("DEV")
             FORMAT_SAVE = f'DEV %(levelname)-8s %(asctime)s - %(message)s'
-        elif config_data['STAGE'] == "PRODUCTION":
+        elif STAGE == "PRODUCTION":
             FORMAT_LOG = '%(reset)s %(log_color)s%(levelname)-8s%(reset)s %(green)s%(asctime)s - %(white)s%(message)s'
             FORMAT_SAVE = f'%(levelname)-8s %(asctime)s - %(message)s'
         

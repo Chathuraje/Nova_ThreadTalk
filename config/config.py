@@ -58,5 +58,14 @@ def set_mode(changed_mode):
     return changed_mode
 
 
+def get_mode():
+    config = configparser.ConfigParser()
+    config_file = 'config.ini'
+
+    config.read(config_file)
+
+    return config['Settings']['STAGE']
+
+
     
     
