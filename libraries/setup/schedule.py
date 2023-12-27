@@ -5,6 +5,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
 from utils.log import setup_logger, get_logger
 from fastapi import HTTPException
+import os
 
 setup_logger()
 logger = get_logger()
@@ -89,7 +90,12 @@ def start_scheduled_videos():
         check_timestamp_latest()
         if not scheduler.running:
             scheduler.start()
-        with open("storage/scheduled_videos.json") as file:
+            
+        FILE_PATH = "storage/scheduled_videos.json"
+        if not os.path.exists(FILE_PATH):
+            return {"message": "No videos scheduled."}
+        
+        with open() as file:
             data = json.load(file)
             schedule_video_generation(scheduler, data)
             return view_scheduled_videos()

@@ -11,8 +11,6 @@ router = APIRouter(
     tags=['Schedule Videos'],
 )
 
-
-
 @router.get("/start_scheduled_videos")
 def start_scheduled_videos():
     return schedule.start_scheduled_videos()
