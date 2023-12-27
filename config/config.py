@@ -1,26 +1,19 @@
 import configparser
 import json
 import os
-from utils.log import setup_logger, get_logger
-
-
-setup_logger()
-logger = get_logger()
 
 def load_configuration():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    STAGE = config.get('Settings', 'STAGE')
+    
+    
     FILE_PATH = 'secrets/secrets.json'
-    
-    if not os.path.exists(FILE_PATH):
-        logger.error(f"File not found: {FILE_PATH}")
-    
-    with open('secrets/secrets.json', 'r') as config_file:
+    with open(FILE_PATH, 'r') as config_file:
         config_data = json.load(config_file)
-        
-    STAGE = config_data['STAGE']
 
-    # Assign configurations based on the STAGE
     configuration = {
-        "STAGE": config_data["stage"],
+        "STAGE": STAGE,
         "REDDIT_CLIENT_ID": config_data["reddit"]["client_id"],
         "REDDIT_CLIENT_SECRET": config_data["reddit"]["client_secret"],
         "REDDIT_USER_AGENT": config_data["reddit"]["user_agent"],
@@ -50,14 +43,19 @@ def load_configuration():
 
 def set_mode(changed_mode):
     config = configparser.ConfigParser()
-    config.read('config.ini')
-    config['Settings']['STAGE'] = changed_mode
-    
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-    
-    return changed_mode
+    config_file = 'config.ini'
 
+    if not os.path.exists(config_file):
+        config['Settings'] = {'STAGE': 'default_stage'}
+
+    config.read(config_file)
+
+    config['Settings']['STAGE'] = changed_mode
+
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
+
+    return changed_mode
 
 
     
