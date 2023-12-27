@@ -1,15 +1,17 @@
 from openai import OpenAI
 from utils.log import setup_logger, get_logger
-from config.config import OPENAI_API_KEY, STAGE
 from utils.data import read_json, check_ongoing, update_json
+from config import config
 
 setup_logger()
 logger = get_logger()
 
 def initialize_openai():
+    config_data = config.load_configuration()
+
     try:
         client = OpenAI(
-            api_key = OPENAI_API_KEY,
+            api_key = config_data['OPENAI_API_KEY'],
         )
         
         return client
@@ -17,7 +19,9 @@ def initialize_openai():
         logger.error(f"Error initializing OpenAI: {e}")
 
 def generate_chat_completion(client, messages):
-    if STAGE == "DEVELOPMENT":
+    config_data = config.load_configuration()
+    
+    if config_data['STAGE'] == "DEVELOPMENT":
         return "This is a development message.", False
     try:
         completion = client.chat.completions.create(
@@ -122,8 +126,12 @@ def __get_meta_data(client, video_name, platform):
         logger.error("Invalid platform. Supported platforms are 'youtube' and 'tiktok'.")
         
     # Generate title
-    title_prompt = f"Create a {title_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one is allowed. do not add additional text or data"
+    title_prompt = f"Create a {title_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one is allowed. do not add additional text or data. and please limit chracter count to 100."
     title_output = ask(client, title_prompt)
+    
+    if len(title_output) > 100:
+        logger.error("Title output is more than 100 characters.")
+    
     logger.info(f"Title: {title_output}")
 
     # Generate description

@@ -124,3 +124,15 @@ def check_video_resolution():
             logger.warn(f"Error: Video width should be {VIDEO_WIDTH} pixels. {file} is {width} pixels wide.")
             os.remove(video_path)
             logger.info(f"Video deleted: {file}")
+            
+            
+def upload_json_secrets(file):
+    if file.content_type != 'application/json':
+        logger.error(f'Only JSON files are allowed')
+    
+    Path(f"secrets").mkdir(parents=True, exist_ok=True)
+    file_path = f"secrets/secrets.json"
+    with open(file_path, "wb") as f:
+        f.write(file.file.read())
+        
+    return None

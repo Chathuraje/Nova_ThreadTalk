@@ -1,7 +1,7 @@
 import logging
 from colorlog import ColoredFormatter
-from config.config import STAGE
 from fastapi import HTTPException
+from config import config
 
 log_setup_done = False  # Flag to track whether logging setup is already done
 
@@ -25,12 +25,13 @@ class CustomStreamHandler(logging.StreamHandler):
 
 def setup_logger():
     global log_setup_done
+    config_data = config.load_configuration()
     
     if not log_setup_done:
-        if STAGE == "DEVELOPMENT":
+        if config_data['STAGE'] == "DEVELOPMENT":
             FORMAT_LOG = '%(bold_red)s{}%(reset)s %(log_color)s%(levelname)-8s%(reset)s %(green)s%(asctime)s - %(white)s%(message)s'.format("DEV")
             FORMAT_SAVE = f'DEV %(levelname)-8s %(asctime)s - %(message)s'
-        elif STAGE == "PRODUCTION":
+        elif config_data['STAGE'] == "PRODUCTION":
             FORMAT_LOG = '%(reset)s %(log_color)s%(levelname)-8s%(reset)s %(green)s%(asctime)s - %(white)s%(message)s'
             FORMAT_SAVE = f'%(levelname)-8s %(asctime)s - %(message)s'
         

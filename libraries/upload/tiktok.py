@@ -3,7 +3,6 @@ import pickle
 from utils.log import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_current_sri_lankan_time
-from config.config import STAGE
 import os
 import json
 import requests
@@ -12,6 +11,7 @@ from tqdm import tqdm
 import time
 from libraries.setup import tiktok
 from datetime import datetime, timedelta
+from config import config
 
 
 from utils.log import setup_logger, get_logger
@@ -161,15 +161,16 @@ def initialize_video_upload(access_token, video_path, tiktok_details):
     }
 
     body_json = json.dumps(body)
+    config_data = config.load_configuration()
 
-    if STAGE == 'PRODUCTION':
+    if config_data["STAGE"] == 'PRODUCTION':
         response = requests.post(url, headers=headers, data=body_json)
         code = response.status_code
         data = response.json()['data']
         publish_id = data['publish_id']
         upload_url = data['upload_url']
         
-    elif STAGE == 'DEVELOPMENT':
+    elif config_data["STAGE"] == 'DEVELOPMENT':
         code = 200
         publish_id = "v_inbox_file~v2.12346789"
         upload_url = "https://testing_development.com/video/?upload_id=6790&upload_token=Xa123"
@@ -203,12 +204,14 @@ def upload_chunk_by_chunk(video_path, chunk_size, total_chunk_count, video_size,
                     
         if chunk == total_chunk_count - 1:
             chunk_end = video_size - 1
+            
+        config_data = config.load_configuration()
                 
-        if STAGE == 'DEVELOPMENT':
+        if config_data['STAGE'] == 'DEVELOPMENT':
             success = 206
             if chunk == total_chunk_count - 1:
                 success = 201
-        if STAGE == 'PRODUCTION':
+        if config_data['STAGE'] == 'PRODUCTION':
             success = upload_video_chunk(upload_url, chunk_start, chunk_end, video_path)
         
         

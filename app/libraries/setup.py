@@ -9,6 +9,11 @@ setup_logger()
 logger = get_logger()
 
 
+def upload_json_secrets(file):
+    logger.info(f'Starting upload...')
+    setup.upload_json_secrets(file)
+    logger.info(f'Upload completed successfully!')
+
 def initial_setup():
     logger.info(f'Starting setup...')
         
