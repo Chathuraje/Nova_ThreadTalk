@@ -6,6 +6,7 @@ from pytz import timezone
 from utils.log import setup_logger, get_logger
 from fastapi import HTTPException
 import os
+from app.libraries.video import generate_short_video
 
 setup_logger()
 logger = get_logger()
@@ -36,10 +37,6 @@ def write_to_json_file(data):
             json.dump(data, file, indent=4)
     except IOError as e:
         print(f"An error occurred while writing to JSON file: {e}") 
-            
-def generate_video():
-    print("Generating video..asdasd.")
-    
 
 
 scheduler = BackgroundScheduler()
@@ -47,7 +44,7 @@ scheduler = BackgroundScheduler()
 def schedule_video_generation(scheduler, dateandtime):
     for item in dateandtime:
         schedule_time = datetime.fromisoformat(item["timestamp"])
-        scheduler.add_job(generate_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
+        scheduler.add_job(generate_short_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
         logger.info(f"Video scheduled for {schedule_time}")      
 
 def generate_timestamp():

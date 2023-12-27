@@ -19,6 +19,7 @@ def initial_setup():
     
     logger.info('Generating Scheduled Timestamps...')
     schedule.generate_timestamp()
+    schedule.start_scheduled_videos()
     logger.info('Scheduled Timestamps generated successfully!')
     
     logger.info('Setup completed successfully!')

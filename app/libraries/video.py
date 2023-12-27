@@ -15,7 +15,7 @@ from utils import data
 setup_logger()
 logger = get_logger()
 
-def generate_short_video(subreddit):  
+def generate_short_video(subreddit="AskReddit"):  
     logger.info("Starting short video generation...")
       
     logger.info(f"Getting top reddit post from: r/{subreddit}")

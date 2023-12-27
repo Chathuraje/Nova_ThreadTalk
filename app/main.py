@@ -6,6 +6,7 @@ from app.routes.setup import router as setup_routes
 from app.routes.video import router as video_routes
 from app.routes.schedule import router as schedule_routes
 from fastapi.middleware.cors import CORSMiddleware 
+from utils import scheduler
 
 app = FastAPI()
 
@@ -26,5 +27,6 @@ app.include_router(setup_routes)
 app.include_router(schedule_routes)   
 app.include_router(video_routes)   
 
-    
 
+
+scheduler.add_daily_scheduler()
