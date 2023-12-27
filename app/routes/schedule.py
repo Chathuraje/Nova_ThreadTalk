@@ -13,20 +13,6 @@ router = APIRouter(
 
 
 
-@router.get("/generate_timestamp")
-def generate_timestamp(
-    date: str = Query(datetime.now().strftime('%Y-%m-%d'), title="Date", description="The date for which to schedule videos, defaults to today."), 
-    num_times: int = Query(4, title="Number of Times", description="Number of random times to generate")
-):
-    try:
-        dateandtime = schedule.generate_timestamp(date, num_times)
-        return {"message": "Video scheduling complete.", "data": dateandtime}
-    except Exception as e:
-        logger.error(f"Error during initial setup: {e}")
-        
-
-
-
 @router.get("/start_scheduled_videos")
 def start_scheduled_videos():
     return schedule.start_scheduled_videos()

@@ -49,7 +49,10 @@ def schedule_video_generation(scheduler, dateandtime):
         scheduler.add_job(generate_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
         logger.info(f"Video scheduled for {schedule_time}")      
 
-def generate_timestamp(date, num_times):
+def generate_timestamp():
+    date = datetime.now().strftime('%Y-%m-%d')
+    num_times = 4
+    
     try:
         times = generate_random_times(date, num_times)
         dateandtime = []
