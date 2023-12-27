@@ -23,8 +23,4 @@ def stop_scheduled_videos():
         
 @router.get("/view_scheduled_videos")
 def view_scheduled_videos():
-    try:
-        dateandtime = schedule.view_scheduled_videos()
-        return {"message": "Scheduled videos fetched.", "data": dateandtime}
-    except Exception as e:
-        logger.error(f"Error viewing scheduled videos: {e}")
+    return schedule.view_scheduled_videos()

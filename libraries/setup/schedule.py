@@ -95,7 +95,7 @@ def start_scheduled_videos():
         if not os.path.exists(FILE_PATH):
             return {"message": "No videos scheduled."}
         
-        with open() as file:
+        with open(FILE_PATH) as file:
             data = json.load(file)
             schedule_video_generation(scheduler, data)
             return view_scheduled_videos()
