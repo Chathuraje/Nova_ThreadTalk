@@ -16,12 +16,12 @@ class ExcludeHttpRequestFilter(logging.Filter):
 
         return http_request_message not in record.getMessage()
     
-class CustomStreamHandler(logging.StreamHandler):
-    def emit(self, record):
-        if record.levelno == logging.ERROR:
+# class CustomStreamHandler(logging.StreamHandler):
+#     def emit(self, record):
+#         if record.levelno == logging.ERROR:
             
-            raise HTTPException(status_code=404, detail=record.getMessage()) 
-        super().emit(record)    
+#             raise HTTPException(status_code=404, detail=record.getMessage()) 
+#         super().emit(record)    
 
 def setup_logger():
     global log_setup_done
@@ -56,12 +56,12 @@ def setup_logger():
         
         console_handler.addFilter(ExcludeHttpRequestFilter())
         
-        error_handler = CustomStreamHandler()
-        error_handler.setLevel(logging.ERROR)
-        error_handler.setFormatter(formatter)
+        # error_handler = CustomStreamHandler()
+        # error_handler.setLevel(logging.ERROR)
+        # error_handler.setFormatter(formatter)
         
         logging.getLogger().addHandler(console_handler)
-        logging.getLogger().addHandler(error_handler)
+        # logging.getLogger().addHandler(error_handler)
 
         log_setup_done = True
 

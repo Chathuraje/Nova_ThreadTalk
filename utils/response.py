@@ -5,9 +5,12 @@ import json
 T = TypeVar('T')
 
 def get_error_message(code: int) -> str:
-    with open("config/error_codes.json", "r") as file:
-        error_codes = json.load(file)
-    return error_codes.get(str(code), "Unknown error")
+    try:
+        with open("config/errors.json", "r") as file:
+            error_codes = json.load(file)
+        return error_codes.get(str(code), "Unknown error")
+    except Exception as e:
+        return "Unknown error"
 
 class StandardResponse(BaseModel, Generic[T]):
     code: int = Field(..., description="Status code of the response")
