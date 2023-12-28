@@ -92,15 +92,15 @@ def get_meta_data():
         client = initialize_openai()
         video_name = reddit_details['title']
 
-        if not youtube_exists:
-            logger.info(f"Generating meta tags for YouTube...")
-            youtube_details = __get_meta_data(client, video_name, platform='youtube')
-            reddit_details['meta_tags'].append(youtube_details)
+        # if not youtube_exists:
+        #     logger.info(f"Generating meta tags for YouTube...")
+        #     youtube_details = __get_meta_data(client, video_name, platform='youtube')
+        #     reddit_details['meta_tags'].append(youtube_details)
 
-        # if not tiktok_exists:
-        #     logger.info(f"Generating meta tags for TikTok...")
-        #     tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
-        #     reddit_details['meta_tags'].append(tiktok_details)
+        if not tiktok_exists:
+            logger.info(f"Generating meta tags for TikTok...")
+            tiktok_details = __get_meta_data(client, video_name, platform='tiktok')
+            reddit_details['meta_tags'].append(tiktok_details)
 
         update_json(reddit_details)
     

@@ -11,7 +11,7 @@ setup_logger()
 logger = get_logger()
 
 SCOPES=[
-    'video.upload'
+    'video.publish'
 ]
 
 

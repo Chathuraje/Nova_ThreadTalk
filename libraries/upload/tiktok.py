@@ -122,9 +122,9 @@ def initialize_video_upload(access_token, video_path, tiktok_details):
     tags = tags_string.split(',')
     tags_with_hashtags = ' '.join(['#' + tag for tag in tags])
 
-    merged_text = f"{description} {tags_with_hashtags}"
+    merged_text = f"{title} {description} {tags_with_hashtags}"
     
-    url = 'https://open.tiktokapis.com/v2/post/publish/inbox/video/init/'
+    url = 'https://open.tiktokapis.com/v2/post/publish/video/init/'
 
     headers = {
         'Authorization': f'Bearer {access_token}',
@@ -147,9 +147,12 @@ def initialize_video_upload(access_token, video_path, tiktok_details):
     
     body = {
         "post_info": {
-            "title": title,
-            "description": merged_text,
-            "privacy_level": "PUBLIC_TO_EVERYONE",
+            "title": merged_text,
+            # "description": merged_text,
+            "disable_duet": False,
+            "disable_comment": False,
+            "disable_stitch": False,
+            "privacy_level": "SELF_ONLY",
         },
         'source_info': {
             'source': 'FILE_UPLOAD',
