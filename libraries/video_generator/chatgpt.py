@@ -126,7 +126,7 @@ def __get_meta_data(client, video_name, platform):
         logger.error("Invalid platform. Supported platforms are 'youtube' and 'tiktok'.")
         
     # Generate title
-    title_prompt = f"Create a {title_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one is allowed. do not add additional text or data. and please limit chracter count to 100."
+    title_prompt = f"Create a {title_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one is allowed. do not add additional text or data. and please limit chracter count to 100 including spaces."
     title_output = ask(client, title_prompt)
     
     if len(title_output) > 100:
@@ -135,7 +135,7 @@ def __get_meta_data(client, video_name, platform):
     logger.info(f"Title: {title_output}")
 
     # Generate description
-    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, limite use less than 100 words, do not add any extra context and do not add extra keywords."
+    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, do not add any extra context and do not add keywords."
     description_output = ask(client, description_prompt)
     logger.info(f"Description: {description_output}")
     
