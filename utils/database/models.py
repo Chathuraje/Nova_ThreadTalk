@@ -6,8 +6,6 @@ from utils.log import setup_logger, get_logger
 setup_logger()
 logger = get_logger()
 
-video_collection = setup_db()
-
 class UploadInfo(BaseModel):
     platform: str
     url: str
@@ -27,6 +25,8 @@ class VideosBase(BaseModel):
 
     @validator("reddit_id", pre=True, always=True)
     def check_reddit_id(cls, value):
+        video_collection = setup_db()
+        
         # Ensure that reddit_id is unique
         if video_collection.find_one({"reddit_id": value}):
             logger.error(f"Reddit id: {value} already exists in the database.")

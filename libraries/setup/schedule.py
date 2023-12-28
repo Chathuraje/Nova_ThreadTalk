@@ -7,6 +7,7 @@ from utils.log import setup_logger, get_logger
 from fastapi import HTTPException
 import os
 from app.libraries.video import generate_short_video
+from pathlib import Path
 
 setup_logger()
 logger = get_logger()
@@ -40,7 +41,9 @@ def generate_random_times(date_str, num_times):
 
 
 def write_to_json_file(data):
+    
     FILE_PATH = "storage/scheduled_videos.json"
+    Path(f"storage/").mkdir(parents=True, exist_ok=True)
     
     try:
         with open(FILE_PATH, "w") as file:
