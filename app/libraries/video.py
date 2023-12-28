@@ -39,21 +39,22 @@ def generate_short_video(subreddit="AskReddit"):
         chatgpt.get_meta_data() 
         logger.info('Meta tags generated successfully!')
         
-        # logger.info("Uploading videos to YouTube...")
-        # youtube.upload_to_youtube()
-        # logger.info("Videos uploaded successfully!")
-        
-        logger.info("Uploading videos to TikTok")
-        tiktok.upload_to_tikTok()
+        logger.info("Uploading videos to YouTube...")
+        youtube.upload_to_youtube()
         logger.info("Videos uploaded successfully!")
         
-        # logger.info("Saving data to database...")
-        # data = save.save_videos_data()
-        # logger.info("Data saved successfully!")
+        # TODO: Need to complete audit to upload videos to TikTok
+        # logger.info("Uploading videos to TikTok")
+        # tiktok.upload_to_tikTok()
+        # logger.info("Videos uploaded successfully!")
+        
+        logger.info("Saving data to database...")
+        data = save.save_videos_data()
+        logger.info("Data saved successfully!")
 
-        # logger.info("Sending message to telegram...")
-        # telegram.send_telegram_message(data)
-        # logger.info("Message sent successfully!")   
+        logger.info("Sending message to telegram...")
+        telegram.send_telegram_message(data)
+        logger.info("Message sent successfully!")   
         
         
         logger.info("Waiting for next video...")
