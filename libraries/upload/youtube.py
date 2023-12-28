@@ -10,6 +10,8 @@ from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_time_after_15_minutes, get_time_after_15_minutes_in_timestamp
 import os
 from config import config
+from googleapiclient.errors import HttpError
+import json
 
 setup_logger()
 logger = get_logger()
@@ -72,7 +74,9 @@ def upload_to_youtube():
     creds = authenticate()
     youtube_client = build_youtube_client(creds)
     
-    upload_video(reddit_details, youtube_client)
+    response = upload_video(reddit_details, youtube_client)
+    
+    return response
     
     
 
@@ -115,7 +119,19 @@ def upload_video(reddit_details, youtube_client):
     config_data = config.load_configuration()
 
     if config_data['STAGE'] == 'PRODUCTION':
-        response = request.execute()
+        try:
+            response = request.execute()
+        except HttpError as e:
+            if e.resp.status == 403:
+                error_details = json.loads(e.content.decode())
+                if any(err['reason'] == 'quotaExceeded' for err in error_details.get('error', {}).get('errors', [])):
+                    logger.warning("Quota exceeded error: " + str(e))
+                    return -1
+                else:
+                    logger.warning("Other HTTP error: " + str(e))
+            else:
+                logger.warning("Non-HTTP error occurred: " + str(e))
+                
     elif config_data['STAGE'] == 'DEVELOPMENT':
         response = {'kind': 'youtube#video', 'etag': 'COTIZQV7jGTZMIGUFKdIro5ORfY', 'id': '000000001', 'snippet': {'publishedAt': '2023-12-18T07:50:13Z', 'channelId': 'UCfC0a4Vvw-EoleljN_H5x5w', 'title': 'This is for development only.', 'description': 'This is for development only.', 'thumbnails': {'default': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/default.jpg', 'width': 120, 'height': 90}, 'medium': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/mqdefault.jpg', 'width': 320, 'height': 180}, 'high': {'url': 'https://i.ytimg.com/vi/y3tsZ3oNkUk/hqdefault.jpg', 'width': 480, 'height': 360}}, 'channelTitle': 'discuss_duo', 'tags': ['This is for development only.'], 'categoryId': '22', 'liveBroadcastContent': 'none', 'localized': {'title': 'This is for development only.', 'description': 'This is for development only.'}}, 'status': {'uploadStatus': 'uploaded', 'privacyStatus': 'public', 'license': 'youtube', 'embeddable': True, 'publicStatsViewable': True, 'selfDeclaredMadeForKids': False}}
     

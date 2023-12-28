@@ -15,26 +15,30 @@ logger = get_logger()
 from datetime import datetime, timedelta
 import random
 
+from datetime import datetime, timedelta
+import random
+
 def generate_random_times(date_str, num_times):
     given_date = datetime.strptime(date_str, '%Y-%m-%d')
 
-    # If the given date is today, start from the current time, else start from midnight
     now = datetime.now()
-    start_time = now if given_date.date() == now.date() else datetime(given_date.year, given_date.month, given_date.day)
+    time_left_today = datetime(now.year, now.month, now.day, 23, 59) - now
+
+    if given_date.date() == now.date() and time_left_today <= timedelta(hours=4):
+        start_time = datetime(given_date.year, given_date.month, given_date.day) + timedelta(days=1)
+    else:
+        start_time = now if given_date.date() == now.date() else datetime(given_date.year, given_date.month, given_date.day)
 
     times = []
     for _ in range(num_times):
-        # Generate a random time during the day, after the start_time
         if start_time.date() == now.date():
-            # Calculate intervals from start_time
             intervals_from_start = (start_time.hour * 60 + start_time.minute) // 15
         else:
-            # If it's a future date, we can start from midnight (0 intervals)
             intervals_from_start = 0
 
         total_intervals = 96  # Total 15-minute intervals in a day
         random_interval = random.randint(intervals_from_start, total_intervals - 1)
-        random_time = datetime(given_date.year, given_date.month, given_date.day) + timedelta(minutes=random_interval * 15)
+        random_time = datetime(start_time.year, start_time.month, start_time.day) + timedelta(minutes=random_interval * 15)
         times.append(random_time.strftime("%Y-%m-%d %H:%M:%S"))
 
     return times
@@ -69,9 +73,7 @@ def generate_timestamp():
         dateandtime = []
         for time in times:
             dateandtime.append({
-                "timestamp": f"{time}+05:30",
-                # "human_readable_time": f"{time} +0530",
-                # "selected": False
+                "timestamp": f"{time}+05:30"
             })
         write_to_json_file(dateandtime)
         return dateandtime
