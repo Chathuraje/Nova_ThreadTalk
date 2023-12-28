@@ -4,7 +4,7 @@ import tempfile
 import threading
 import time
 import math
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from tqdm import tqdm
 import os
 import random

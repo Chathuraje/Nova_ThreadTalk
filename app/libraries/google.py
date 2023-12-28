@@ -1,4 +1,4 @@
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from libraries.setup import google
 
 setup_logger()

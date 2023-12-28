@@ -1,6 +1,6 @@
 import os
 import shutil
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 
 setup_logger()
 logger = get_logger()

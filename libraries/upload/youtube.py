@@ -5,7 +5,7 @@ import google.oauth2.credentials
 import pickle
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_time_after_15_minutes, get_time_after_15_minutes_in_timestamp
 import os

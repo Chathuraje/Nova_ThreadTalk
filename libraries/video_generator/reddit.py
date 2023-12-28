@@ -4,7 +4,7 @@ from praw.models import MoreComments
 from bs4 import BeautifulSoup
 from markdown import markdown
 import re
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils.database.schemas import does_reddit_id_exist
 from utils.folders import create_folders
 from utils.data import create_reddit_json, update_reddit_json, check_ongoing, create_json, update_json, create_not_found_json, read_not_found_json

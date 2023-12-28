@@ -1,5 +1,5 @@
 from openai import OpenAI
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from config import config
 

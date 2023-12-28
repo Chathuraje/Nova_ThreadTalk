@@ -1,6 +1,6 @@
 import os
 import pickle
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils.data import read_json, check_ongoing, update_json
 from utils.time import get_current_sri_lankan_time
 import os
@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from config import config
 
 
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 
 
 setup_logger()

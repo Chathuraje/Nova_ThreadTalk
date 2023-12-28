@@ -1,7 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel, validator
 from libraries.setup.db import setup_db
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 
 setup_logger()
 logger = get_logger()

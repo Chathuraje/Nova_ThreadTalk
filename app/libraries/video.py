@@ -8,7 +8,7 @@ from libraries.upload import youtube
 from libraries.upload import tiktok
 from utils import storage
 from libraries.video_generator import telegram
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils import data
 
 

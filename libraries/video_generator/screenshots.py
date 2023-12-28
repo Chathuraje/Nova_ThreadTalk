@@ -1,6 +1,6 @@
 import json
 from playwright.sync_api import ViewportSize, sync_playwright
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from utils.data import read_reddit_json, check_ongoing, read_json, update_json
 import os
 from config import config

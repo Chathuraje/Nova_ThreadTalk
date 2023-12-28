@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.libraries import video
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from enum import Enum
 
 setup_logger()

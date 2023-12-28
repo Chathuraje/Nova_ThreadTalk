@@ -3,7 +3,7 @@ import random
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from fastapi import HTTPException
 import os
 from app.libraries.video import generate_short_video

@@ -1,4 +1,4 @@
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
 from pathlib import Path

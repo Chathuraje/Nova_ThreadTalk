@@ -1,6 +1,6 @@
 from elevenlabs import Voice, VoiceSettings, generate, set_api_key, play
 from pathlib import Path
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from elevenlabs.api import User
 from utils.data import read_json, check_ongoing, update_json
 from gtts import gTTS

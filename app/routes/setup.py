@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from app.libraries import setup
 from fastapi import File, UploadFile, Request
 

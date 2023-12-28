@@ -1,5 +1,5 @@
 import os
-from utils.log import setup_logger, get_logger
+from utils.logger import setup_logger, get_logger
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import io
