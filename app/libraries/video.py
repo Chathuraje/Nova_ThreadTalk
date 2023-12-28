@@ -23,7 +23,7 @@ def get_reddit_post(subreddit):
         return True
     
     except Exception as e:
-        logger.warning(f"Error getting Reddit post: {e}")
+        logger.error(f"Error getting Reddit post: {e}")
         return False
 
 def capture_screenshots():
@@ -33,7 +33,7 @@ def capture_screenshots():
         logger.info("Screenshots captured successfully!")
         return True
     except Exception as e:
-        logger.warning(f"Error capturing screenshots: {e}")
+        logger.error(f"Error capturing screenshots: {e}")
         return False
 
 def generate_voice_over():
@@ -43,7 +43,7 @@ def generate_voice_over():
         logger.info("Voice generated successfully!")
         return True
     except Exception as e:
-        logger.warning(f"Error generating voice: {e}")
+        logger.error(f"Error generating voice: {e}")
         return False
 
 def create_video():
@@ -53,7 +53,7 @@ def create_video():
         logger.info("Video generated successfully!")
         return True
     except Exception as e:
-        logger.warning(f"Error generating video: {e}")
+        logger.error(f"Error generating video: {e}")
         return False
 
 def generate_meta_tags():
@@ -63,7 +63,7 @@ def generate_meta_tags():
         logger.info('Meta tags generated successfully!')
         return True
     except Exception as e:
-        logger.warning(f"Error generating meta tags: {e}")
+        logger.error(f"Error generating meta tags: {e}")
         return False
     
 def upload_to_youtube():
@@ -75,8 +75,8 @@ def upload_to_youtube():
             return True
         else:
             global TRIES
-            TRIES = MAX_TRIES
-            logger.warning("Video uploaded failed!: Quota exceeded")
+            TRIES = -1
+            logger.error("Video uploaded failed!: Quota exceeded")
             return False
     except Exception as e:
         logger.warning(f"Error uploading video: {e}")
@@ -89,7 +89,7 @@ def upload_to_tiktok():
         logger.info("Video uploaded to TikTok successfully!")
         return True
     except Exception as e:
-        logger.warning(f"Error uploading video to TikTok: {e}")
+        logger.error(f"Error uploading video to TikTok: {e}")
         return False
 
 def save_video_data():
@@ -99,7 +99,7 @@ def save_video_data():
         logger.info("Data saved successfully!")
         return data
     except Exception as e:
-        logger.warning(f"Error saving data: {e}")
+        logger.error(f"Error saving data: {e}")
         return None
 
 def send_telegram_message(data):
@@ -109,7 +109,7 @@ def send_telegram_message(data):
         logger.info("Message sent to Telegram successfully!")
         return True
     except Exception as e:
-        logger.warning(f"Error sending Telegram message: {e}")
+        logger.error(f"Error sending Telegram message: {e}")
         return False
     
     
@@ -155,8 +155,11 @@ def generate_short_video(subreddit="AskReddit"):
 
 def retry_on_failure(subreddit):
     global TRIES
+    if TRIES == -1:
+        logger.fatal(f"Error. Aborting operation.")
+        
     if TRIES >= MAX_TRIES:
-        logger.error(f"Maximum retries reached. Aborting operation.")
+        logger.fatal(f"Maximum retries reached. Aborting operation.")
         
     logger.info(f"Retry {TRIES}/{MAX_TRIES} in 10 seconds...")
     time.sleep(10)
