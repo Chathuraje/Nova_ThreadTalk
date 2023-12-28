@@ -18,7 +18,7 @@ class ExcludeHttpRequestFilter(logging.Filter):
     
 class CustomStreamHandler(logging.StreamHandler):
     def emit(self, record):
-        if record.levelno == logging.fatal:
+        if record.levelno == logging.ERROR:
             
             raise HTTPException(status_code=404, detail=record.getMessage()) 
         super().emit(record)    
