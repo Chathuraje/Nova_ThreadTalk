@@ -10,7 +10,7 @@ from utils import storage
 from libraries.video_generator import telegram
 from utils.log import setup_logger, get_logger
 from utils import data
-
+import time
 
 setup_logger()
 logger = get_logger()
@@ -59,7 +59,8 @@ def generate_short_video(subreddit="AskReddit"):
         
         logger.info("Waiting for next video...")
     except Exception as e:
-        logger.info(f"Error generating video and trying again....: {e}")
+        logger.info(f"Error generating video and trying again in 10 seconds....: {e}")
+        time.sleep(10)
         generate_short_video(subreddit)
     
     
