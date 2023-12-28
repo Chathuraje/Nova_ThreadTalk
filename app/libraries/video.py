@@ -60,7 +60,7 @@ def generate_short_video(subreddit="AskReddit"):
         logger.info("Waiting for next video...")
     except Exception as e:
         logger.info(f"Error generating video and trying again....: {e}")
-        # generate_short_video(subreddit)
+        generate_short_video(subreddit)
     
     
 def get_video_data(video_id):

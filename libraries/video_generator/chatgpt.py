@@ -131,16 +131,22 @@ def __get_meta_data(client, video_name, platform):
     
     if len(title_output) > 100:
         logger.error("Title output is more than 100 characters.")
+        
+    if title_output == title_prompt:
+        logger.error("Title output is same as title prompt.")
     
     logger.info(f"Title: {title_output}")
 
     # Generate description
-    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, do not add any extra context and do not add keywords."
+    description_prompt = f"Write a {description_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}. only one description is allowed. do not add additional text or data, do not add any extra context and do not add keywords. specially do not add any additional links. and please limit chracter count to 500 including spaces."
     description_output = ask(client, description_prompt)
     logger.info(f"Description: {description_output}")
     
+    if description_output == description_prompt:
+        logger.error("Description output is same as description prompt.")
+    
     # Generate tags/hashtags
-    tags_prompt = f"Suggest {tags_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}, do not add # sign. seperate each tag with a comma."
+    tags_prompt = f"Suggest {tags_prompt_type} for a reddit top comment compilation video about {video_name}. {additional}, do not add # sign. seperate each tag with a comma. do not add anything like SEO, YOUTUBE, TIKTOK, SEO TITLE"
     tags_output = ask(client, tags_prompt)
     logger.info(f"Tags: {tags_output}")
     
