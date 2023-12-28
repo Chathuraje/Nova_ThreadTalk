@@ -132,6 +132,10 @@ def __get_top_reddit_comment(reddit, post_id: str):
             continue
         if any(word in comment.body.lower() for word in profanity_words) or not MIN_COMMENT_WORDS < len(comment.body.split()) < MAX_COMMENT_WORDS:
             continue
+        
+        # pass  if the comments contains a link
+        if re.search("(?P<url>https?://[^\s]+)", comment.body):
+            continue
             
         comments_body = __markdown_to_text(comment.body)
         
