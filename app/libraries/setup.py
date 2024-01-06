@@ -5,49 +5,44 @@ from libraries.video_generator import telegram
 import datetime
 import pytz
 from libraries.setup import db
+from utils.response import UploadJsonFileResponse, InitialSetupResponse, ViewScheduledVideo
+from apscheduler.schedulers.background import BackgroundScheduler
 
 setup_logger()
 logger = get_logger()
 
 
-def upload_json_secrets(file):
-    logger.info(f'Starting upload...')
-    setup.upload_json_secrets(file)
-    logger.info(f'Upload completed successfully!')
+async def upload_json(file) -> UploadJsonFileResponse:
+    data = await setup.upload_json(file)
+    
+    return UploadJsonFileResponse(code=200, data=data)
 
-def initial_setup():
-    logger.info(f'Starting setup...')
-        
-    logger.info(f'Setting up database...')
-    db.setup_db()
-    logger.info(f'Setup database successfully!')
+async def initial_setup() -> InitialSetupResponse:
+    db_setup = False
+    db_connect = await db.setup_db()
+    if db_connect is not None:
+        db_setup = True
     
-    logger.info('Start downloading background videos...')
-    setup.download_background_videos()
-    logger.info('Background videos downloaded successfully!')
+    video_list = await setup.download_background_videos()
+    await setup.check_video_resolution()
     
-    logger.info('Checking video resolution...')
-    setup.check_video_resolution()
-    logger.info('Video resolution checked successfully!')
+    timestamps = await schedule.start_scheduled_videos()
     
-    logger.info('Generating Scheduled Timestamps...')
-    schedule.stop_scheduled_videos()
-    timestamps = schedule.generate_timestamp()
-    schedule.start_scheduled_videos()
-    logger.info('Scheduled Timestamps generated successfully!')
-    
-    logger.info('Setup completed successfully!')
-    
-    
-    sorted_timestamps = sorted(timestamps, key=lambda x: x['timestamp'])
-
     message = "Video Generation Schedule:\n"
-    for item in sorted_timestamps:
-        timestamp = datetime.datetime.fromisoformat(item['timestamp'])
-        formatted_time = timestamp.strftime('%Y-%m-%d %H:%M:%S %Z')
-        message += f"- {formatted_time}\n"
-        
-    message += f"Setup completed successfully! Video scheduled successfully!"
+    for item in timestamps:
+        message += f"- {item['next_run_time']}\n"
+    message += f"Video scheduled successfully!"
     telegram.send(message)
+    
+    video_data = [ViewScheduledVideo(**item) for item in timestamps]
+    
+    data = {
+        'status': 'success',
+        'db_setup': db_setup,
+        'video_downloaded': video_list,
+        'scheduled_at': video_data
+    }
+    
+    return InitialSetupResponse(code=200, data=data)
     
     

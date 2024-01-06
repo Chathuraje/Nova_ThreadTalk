@@ -2,6 +2,13 @@ from utils.logger import setup_logger, get_logger
 import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
 from pathlib import Path
+from fastapi import HTTPException
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Optional
+import json
+from utils.response import GoogleUploadContent, GoogleAuthContent, GoogleAuthCallbackContent
+from google.auth.exceptions import RefreshError
+from googleapiclient.errors import HttpError
 
 setup_logger()
 logger = get_logger()
@@ -11,63 +18,148 @@ SCOPES=[
     'https://www.googleapis.com/auth/drive'
 ]
 
+class GoogleClientConfig(BaseModel):
+    client_id: str
+    project_id: str
+    auth_uri: str
+    token_uri: str
+    auth_provider_x509_cert_url: str
+    client_secret: str
+    redirect_uris: List[str]
 
-def upload_json(file):
+class GoogleConfigInstalled(BaseModel):
+    installed: Optional[GoogleClientConfig]
+    
+class GoogleConfigWeb(BaseModel):
+    web: Optional[GoogleClientConfig]
+
+async def upload_json(file) -> GoogleUploadContent:
     if file.content_type != 'application/json':
-        logger.error(f'Only JSON files are allowed')
-    
-    Path(f"secrets/google").mkdir(parents=True, exist_ok=True)
-    file_path = f"secrets/google/threadtalk.json"
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
-        
-    return None
-    
+        logger.error('Invalid file type, only JSON files are allowed.')
+        raise HTTPException(status_code=400, detail='Invalid file type, only JSON files are allowed.')
 
-
-def google_callback(request, code):
     try:
-        JSON_PATH = 'secrets/google/threadtalk.json'
-
-        flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
-        flow.redirect_uri = request.url_for("google_auth_callback")
-        flow.fetch_token(code=code)
+        Path("secrets/google").mkdir(parents=True, exist_ok=True)
+        content = await file.read()
+        json_data = json.loads(content.decode('utf-8'))
         
-        creds = flow.credentials
+        validated_data = None
+        if 'web' in json_data:
+            validated_data = GoogleConfigWeb(**json_data)
+        elif 'installed' in json_data:
+            validated_data = GoogleConfigInstalled(**json_data)
+        else:
+            raise AttributeError("No valid 'web' or 'installed' configuration found in JSON file.")
 
-        PICKLE_FILE = JSON_PATH.replace('.json', '.pickle')
-        with open(PICKLE_FILE, 'wb') as token:
-            pickle.dump(creds, token)
-            
-            logger.info(f'Created token file')
+        file_path = "secrets/google/threadtalk.json"
+        with open(file_path, "w") as f:
+            json.dump(validated_data.dict(), f, indent=4)
+        
+        return GoogleUploadContent(upload_status="Success")
 
-        return creds
-
+    except ValidationError as e:
+        logger.error(f"JSON values are missing or wrong: {e.json()}")
+        raise HTTPException(status_code=422, detail=f"JSON values are missing or wrong")
+    except AttributeError as e:
+            logger.error(f'No valid configuration found in JSON file: {e}')
+            raise HTTPException(status_code=500, detail=f"No valid configuration found in JSON file: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except IOError as e:
+        logger.error(f"File IO Error: {e}")
+        raise HTTPException(status_code=500, detail="File saving failed")
     except Exception as e:
-        logger.error(f'An error occurred in google_callback: {e}')
-        
-    
+        logger.error(f"Unknown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {e}")
 
-def create_refresh_token(request):
+
+async def setup_google(request) -> GoogleAuthContent:
+    logger.info(f'Creating refresh token')
+    JSON_PATH = 'secrets/google/threadtalk.json'
+    
     try:
-        JSON_PATH = 'secrets/google/threadtalk.json'
+        with open(JSON_PATH, 'r') as f:
+            json_data = json.load(f)
+
+        validated_data = None
+        if 'web' in json_data:
+            validated_data = GoogleConfigWeb(**json_data)
+        elif 'installed' in json_data:
+            validated_data = GoogleConfigInstalled(**json_data)
+        else:
+            raise AttributeError("No valid 'web' or 'installed' configuration found in JSON file.")
         
-        flow = InstalledAppFlow.from_client_secrets_file(
-            JSON_PATH, scopes=SCOPES)
-        
+        flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
         flow.redirect_uri = request.url_for("google_auth_callback")
         auth_url, _ = flow.authorization_url(prompt='consent')
         logger.info(f'Please go to this URL: {auth_url}')
         return auth_url
-                    
-    except Exception as e:
-        logger.error(f'Error loading credentials from json file: {e}')
-
-
-def setup_google(request):
-    JSON_PATH = 'secrets/google/threadtalk.json'
     
-    logger.info(f'Creating refresh token')
-    response = create_refresh_token(request)
+    except FileNotFoundError:
+        logger.error('JSON configuration file not found')
+        raise HTTPException(status_code=404, detail="JSON configuration file not found")
+    except ValidationError as e:
+        logger.error(f"JSON values are missing or wrong: {e.json()}")
+        raise HTTPException(status_code=422, detail=f"JSON values are missing or wrong")
+    except AttributeError as e:
+            logger.error(f'No valid configuration found in JSON file: {e}')
+            raise HTTPException(status_code=500, detail=f"No valid configuration found in JSON file: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except IOError as e:
+        logger.error(f"File IO Error: {e}")
+        raise HTTPException(status_code=500, detail="File saving failed")
+    except Exception as e:
+        logger.error(f"Unknown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {e}")
+    
+
+
+async def google_callback(request, code):
+    JSON_PATH = 'secrets/google/threadtalk.json'
+    try:
+        with open(JSON_PATH, 'r') as f:
+            json_data = json.load(f)
+
+        validated_data = None
+        if 'web' in json_data:
+            validated_data = GoogleConfigWeb(**json_data)
+        elif 'installed' in json_data:
+            validated_data = GoogleConfigInstalled(**json_data)
+        else:
+            raise AttributeError("No valid 'web' or 'installed' configuration found in JSON file.")
+
+            
+        flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
+        flow.redirect_uri = request.url_for("google_auth_callback")
+        flow.fetch_token(code=code)
+
+        creds = flow.credentials
+        PICKLE_FILE = JSON_PATH.replace('.json', '.pickle')
+
+        with open(PICKLE_FILE, 'wb') as token:
+            pickle.dump(creds, token)
+            logger.info('Created token file')
+            
+    
+    except FileNotFoundError:
+        logger.error('JSON configuration file not found')
+        raise HTTPException(status_code=404, detail="JSON configuration file not found")
+    except ValidationError as e:
+        logger.error(f"JSON values are missing or wrong: {e.json()}")
+        raise HTTPException(status_code=422, detail=f"JSON values are missing or wrong")
+    except AttributeError as e:
+            logger.error(f'No valid configuration found in JSON file: {e}')
+            raise HTTPException(status_code=500, detail=f"No valid configuration found in JSON file: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except IOError as e:
+        logger.error(f"File IO Error: {e}")
+        raise HTTPException(status_code=500, detail="File saving failed")
+    except Exception as e:
+        logger.error(f"Unknown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {e}")
         
-    return response

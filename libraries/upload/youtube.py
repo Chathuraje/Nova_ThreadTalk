@@ -12,6 +12,7 @@ import os
 from config import config
 from googleapiclient.errors import HttpError
 import json
+from fastapi import HTTPException
 
 setup_logger()
 logger = get_logger()
@@ -26,28 +27,44 @@ def auth():
         if os.path.exists(TOKEN_PATH):
             with open(TOKEN_PATH, 'rb') as token:
                 creds = pickle.load(token)
+
             if not creds or not creds.valid:
                 if creds and creds.expired and creds.refresh_token:
                     logger.info('Refreshing credentials')
-                    creds.refresh(google.auth.transport.requests.Request()) 
+                    creds.refresh(google.auth.transport.requests.Request())
                 else:
-                    logger.error(f'Error loading credentials from pickle file. Needs to be refreshed.')
-                    return None
-                        
+                    logger.error('Credentials need to be refreshed.')
+                    raise HTTPException(status_code=401, detail="Invalid or expired credentials")
+
             return creds
         else:
-            logger.error(f'Token file not found')
-            return None
+            logger.error('Token file not found')
+            raise HTTPException(status_code=404, detail="Token file not found")
+
+    except pickle.UnpicklingError:
+        logger.error('Error in unpickling the token file')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     except Exception as e:
-            logger.error(f'Error loading credentials from pickle file: {e}')
+        logger.error(f'Unexpected error: {e}')
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 
 def authenticate():
-    return auth()
+    creds = auth()
+    if creds is None:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+    
+    return creds
 
 
 def build_youtube_client(creds):
-    return build('youtube', 'v3', credentials=creds)
+    try:
+        youtube = build('youtube', 'v3', credentials=creds)
+        return youtube
+    except Exception as e:
+        logger.error(f'Error building YouTube client: {e}')
+        raise HTTPException(status_code=500, detail="Failed to build YouTube client")
 
 
 def __check_if_video_uploaded(reddit):

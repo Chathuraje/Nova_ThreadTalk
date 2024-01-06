@@ -3,139 +3,91 @@ import random
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
-from utils.logger import setup_logger, get_logger
 from fastapi import HTTPException
 import os
-from app.libraries.video import generate_short_video
 from pathlib import Path
+from utils.logger import setup_logger, get_logger
+from app.libraries.video import generate_short_video
+import pytz
 
 setup_logger()
 logger = get_logger()
 
-from datetime import datetime, timedelta
-import random
-
-from datetime import datetime, timedelta
-import random
-
-def generate_random_times(date_str, num_times):
-    given_date = datetime.strptime(date_str, '%Y-%m-%d')
-
-    now = datetime.now()
-    time_left_today = datetime(now.year, now.month, now.day, 23, 59) - now
-
-    if given_date.date() == now.date() and time_left_today <= timedelta(hours=4):
-        start_time = datetime(given_date.year, given_date.month, given_date.day) + timedelta(days=1)
-    else:
-        start_time = now if given_date.date() == now.date() else datetime(given_date.year, given_date.month, given_date.day)
-
-    times = []
-    for _ in range(num_times):
-        if start_time.date() == now.date():
-            intervals_from_start = (start_time.hour * 60 + start_time.minute) // 15
-        else:
-            intervals_from_start = 0
-
-        total_intervals = 96  # Total 15-minute intervals in a day
-        random_interval = random.randint(intervals_from_start, total_intervals - 1)
-        random_time = datetime(start_time.year, start_time.month, start_time.day) + timedelta(minutes=random_interval * 15)
-        times.append(random_time.strftime("%Y-%m-%d %H:%M:%S"))
-
-    return times
-
-
-def write_to_json_file(data):
+FILE_PATH = "storage/scheduled_videos.json"
     
-    FILE_PATH = "storage/scheduled_videos.json"
-    Path(f"storage/").mkdir(parents=True, exist_ok=True)
-    
-    try:
-        with open(FILE_PATH, "w") as file:
-            json.dump(data, file, indent=4)
-    except IOError as e:
-        print(f"An error occurred while writing to JSON file: {e}") 
-
 
 scheduler = BackgroundScheduler()
     
-def schedule_video_generation(scheduler, dateandtime):
+async def schedule_video_generation(dateandtime):
+    global scheduler
     for item in dateandtime:
-        schedule_time = datetime.fromisoformat(item["timestamp"])
-        scheduler.add_job(generate_short_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
-        logger.info(f"Video scheduled for {schedule_time}")      
-
-def generate_timestamp():
-    date = datetime.now().strftime('%Y-%m-%d')
+        schedule_time = datetime.fromisoformat(item)
+        try:
+            scheduler.add_job(generate_short_video, 'date', run_date=schedule_time, timezone=timezone('Asia/Colombo'))
+            logger.info(f"Video scheduled for {schedule_time}")
+        except Exception as e:
+            logger.error(f"Error scheduling video for {schedule_time}: {e}")
+            raise HTTPException(status_code=500, detail="Error scheduling video")
+ 
+def generate_timestamp_sri_lanka():
+    # Set timezone to Sri Lanka Standard Time
+    sri_lanka_tz = pytz.timezone('Asia/Colombo')
+    current_datetime = datetime.now(sri_lanka_tz)
+    
     num_times = 4
+    future_times = []
     
-    try:
-        times = generate_random_times(date, num_times)
-        dateandtime = []
-        for time in times:
-            dateandtime.append({
-                "timestamp": f"{time}+05:30"
-            })
-        write_to_json_file(dateandtime)
-        return dateandtime
-    except Exception as e:
-        logger.error(f"Error during scheduling videos")
-      
+    # Calculate the end of the day in Sri Lankan time
+    end_of_day = current_datetime.replace(hour=23, minute=30, second=00, microsecond=999999)
+    remaining_seconds_today = (end_of_day - current_datetime).total_seconds()
 
-def check_timestamp_latest():
-    with open("storage/scheduled_videos.json") as file:
-        data = json.load(file)
+    # Divide the remaining time into equal intervals
+    interval = remaining_seconds_today / num_times
 
-        now_utc = datetime.now(timezone('UTC'))
-        for item in data:
-            timestamp_str = item['timestamp']
-            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S%z")
+    for i in range(num_times):
+        # Generate timestamps at each interval
+        future_time = current_datetime + timedelta(seconds=interval * (i+1))
+        future_times.append(future_time.strftime('%Y-%m-%d %H:%M:%S'))
 
-            if timestamp < now_utc:
-                logger.error(f"Timestamp {timestamp_str} is in the past.")
+    return future_times
                 
                 
-def start_scheduled_videos():
-    existing_data = view_scheduled_videos()
-    if existing_data:
-            logger.error("Scheduled videos already started.")
-    else:
-        check_timestamp_latest()
-        if not scheduler.running:
-            scheduler.start()
-            
-        FILE_PATH = "storage/scheduled_videos.json"
-        if not os.path.exists(FILE_PATH):
-            return {"message": "No videos scheduled."}
-        
-        with open(FILE_PATH) as file:
-            data = json.load(file)
-            schedule_video_generation(scheduler, data)
-            return view_scheduled_videos()
-
-    
-        
-        
-def stop_scheduled_videos():
+async def start_scheduled_videos():
+    global scheduler
     if scheduler.running:
-        existing_data = view_scheduled_videos()
+        await stop_scheduled_videos()
+        
+    times = generate_timestamp_sri_lanka()
+    if not scheduler.running:
+        scheduler.start()
+        await schedule_video_generation(times)
+            
+    return await view_scheduled_videos()
+
+    
+async def stop_scheduled_videos():
+    global scheduler
+    if scheduler.running:
+        existing_data = await view_scheduled_videos()
         if existing_data:
             try:
                 jobs = scheduler.get_jobs()
-                
                 for job in jobs:
                     job.remove()
                 scheduler.shutdown()
-                return {"message": "Scheduled videos stopped."}
+                
+                return True
             except Exception as e:
                 logger.error(f"Error stopping scheduled videos: {e}")
-        
-        else:
-            return {"message": "No videos scheduled."}
+                raise HTTPException(status_code=500, detail="Error stopping scheduled videos")
     else:
-        logger.info(f"Scheduled videos already stopped.")
+        logger.error(f"Error stopping scheduled videos: Scheduler not running")
+        raise HTTPException(status_code=500, detail="Error stopping scheduled videos: Scheduler not running")
         
 
-def view_scheduled_videos():
+async def view_scheduled_videos():
+    global scheduler
+    
     jobs = scheduler.get_jobs()
     jobs_info = []
     for job in jobs:

@@ -1,31 +1,31 @@
 from utils.logger import setup_logger, get_logger
 from libraries.setup import schedule
+from utils.response import ViewScheduledVideoResponse, ViewScheduledVideo, StopScheduledVideoRespose
+from libraries.video_generator import telegram
 
 setup_logger()
 logger = get_logger()
 
 
-def generate_timestamp(date, num_times):
-    logger.info('Start scheduling videos...')
-    dateandtime = schedule.generate_timestamp(date, num_times)
-    logger.info('Videos scheduled successfully!')
-    return dateandtime
+async def start_scheduled_videos() -> ViewScheduledVideoResponse:
+    timestamps = await schedule.start_scheduled_videos()
+    
+    message = "Video Generation Schedule:\n"
+    for item in timestamps:
+        message += f"- {item['next_run_time']}\n"
+        
+    message += f"Video scheduled successfully!"
+    telegram.send(message)
+    
+    video_data = [ViewScheduledVideo(**item) for item in timestamps]
+    return ViewScheduledVideoResponse(code=200, data=video_data)
 
-def start_scheduled_videos():
-    logger.info('Starting scheduled videos...')
-    data = schedule.start_scheduled_videos()
-    logger.info('Scheduled videos started successfully!')
+async def stop_scheduled_videos() -> StopScheduledVideoRespose:
+    await schedule.stop_scheduled_videos()
+    return StopScheduledVideoRespose(code=200, data={'status': 'stopped'})
     
-    return data
-
-def stop_scheduled_videos():
-    logger.info('Stopping scheduled videos...')
-    schedule.stop_scheduled_videos()
-    logger.info('Scheduled videos stopped successfully!')
+async def view_scheduled_videos() -> ViewScheduledVideoResponse:
+    data = await schedule.view_scheduled_videos()
+    video_data = [ViewScheduledVideo(**item) for item in data]
     
-    
-def view_scheduled_videos():
-    logger.info('Viewing scheduled videos...')
-    dateandtime = schedule.view_scheduled_videos()
-    logger.info('Scheduled videos fetched successfully!')
-    return dateandtime
+    return ViewScheduledVideoResponse(code=200, data=video_data)

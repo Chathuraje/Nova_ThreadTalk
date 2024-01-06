@@ -3,6 +3,7 @@ from utils.logger import setup_logger, get_logger
 from fastapi import Request
 from fastapi import File, UploadFile, Request
 from app.libraries import tiktok
+from utils.response import TiktokUploadJsonFileResponse, TiktokAuthResponse, TiktokAuthCallbackResponse
 
 
 setup_logger()
@@ -10,28 +11,20 @@ logger = get_logger()
 
 router = APIRouter(
     tags=['TikTok'],
+    # prefix='/tiktok'
 )
 
-@router.post('/upload_json_tiktok')
-def upload_json(file: UploadFile = File(...)):
-    try:
-        tiktok.upload_json(file)
-        return {'message': 'Upload complete.'}
-    except Exception as e:
-        logger.error(f"Error uploading JSON file to TikTok: {e}")
+@router.post('/tiktok_upload-json-file', response_model=TiktokUploadJsonFileResponse)
+async def upload_json(file: UploadFile = File(...)):
+    logger.info('upload json endpoint accessed.')
+    return await tiktok.upload_json(file)
 
-@router.get('/setup_tiktok')
-def setup_tiktok(request: Request):
-    try:
-        auth_url = tiktok.setup_tiktok(request)
-        return {'message': 'URL generated successfully.', 'auth_url': auth_url}
-    except Exception as e:
-        logger.error(f"Error setting up TikTok authentication: {e}")
+@router.get('/tiktok_setup_tiktok', response_model=TiktokAuthResponse)
+async def setup_tiktok(request: Request):
+    logger.info('tiktok setup endpoint accessed.')
+    return await tiktok.setup_tiktok(request)
 
-@router.get('/tiktok_auth_callback', include_in_schema=False)
-def tiktok_auth_callback(request: Request, code: str, scopes: str, state: str):
-    try:
-        tiktok.tiktok_auth_callback(request, code, scopes, state)
-        return {"code": code, "scopes": scopes, "state": state}
-    except Exception as e:
-        logger.error(f"Error during TikTok authentication callback: {e}")
+@router.get('/tiktok_auth_callback', include_in_schema=False, response_model=TiktokAuthCallbackResponse)
+async def tiktok_auth_callback(request: Request, code: str, scopes: str, state: str):
+    logger.info("tiktok_auth_callback endpoint accessed.")
+    return await tiktok.tiktok_auth_callback(request, code, scopes, state)

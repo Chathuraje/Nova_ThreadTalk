@@ -1,7 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from utils.logger import setup_logger, get_logger
 from app.libraries import root
-from utils.response import StandardResponse, LogContent
+from utils.response import StandardResponse, ReadLogResponse
 
 setup_logger()
 logger = get_logger()
@@ -12,12 +12,12 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=StandardResponse)
-def read_root():
+async def read_root():
     logger.info("Root endpoint accessed.")
-    return root.root()
+    return await root.root()
 
-@router.get("/read-log", response_model=StandardResponse[LogContent])
-def read_log(limit: int = None):
+@router.get("/read-log", response_model=ReadLogResponse)
+async def read_log(limit: int = None):
     logger.info("Log endpoint accessed.")
-    return root.read_log(limit)
+    return await root.read_log(limit)
 

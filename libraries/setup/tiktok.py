@@ -6,6 +6,11 @@ import random
 import hashlib
 import json
 import requests
+from fastapi import HTTPException
+from pydantic import BaseModel, Field, ValidationError
+from typing import List, Optional
+from utils.response import TiktokUploadContent
+from utils.tiktokToken import TikTokTokenData
 
 setup_logger()
 logger = get_logger()
@@ -13,116 +18,99 @@ logger = get_logger()
 SCOPES=[
     'video.publish'
 ]
+class TiktokClientConfig(BaseModel):
+    apps_id: str
+    client_key: str
+    client_secret: str
+    csrf_state: Optional[str] = None
+    code_verifier: Optional[str] = None
 
-
-def upload_json(file):
+class TiktokConfig(BaseModel):
+    auth: Optional[TiktokClientConfig]
+    
+async def upload_json(file) -> TiktokUploadContent:
     if file.content_type != 'application/json':
-        logger.error(f'Only JSON files are allowed')
+        logger.error('Invalid file type, only JSON files are allowed.')
+        raise HTTPException(status_code=400, detail='Invalid file type, only JSON files are allowed.')
     
-    Path(f"secrets/tiktok").mkdir(parents=True, exist_ok=True)
-    file_path = f"secrets/tiktok/threadtalk.json"
-    with open(file_path, "wb") as f:
-        f.write(file.file.read())
+    try:
+        Path("secrets/tiktok").mkdir(parents=True, exist_ok=True)
+        file_path = "secrets/tiktok/threadtalk.json"
+        content = await file.read()
+        json_data = json.loads(content.decode('utf-8'))
         
-    return None
-    
-    
-def generate_random_string(length):
-    return ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~', k=length))
+        validated_data = None
+        if 'auth' in json_data:
+            validated_data = TiktokConfig(**json_data)
+        else:
+            raise AttributeError("No valid 'auth' configuration found in JSON file.")
 
-def get_authorization_url(request, CLIENT_KEY):
-    REDIRECT_URI = request.url_for("tiktok_auth_callback")
-    
-    csrf_state = generate_random_string(6)
-    code_verifier = generate_random_string(128)
-    code_challenge = hashlib.sha256(code_verifier.encode()).hexdigest()
+        with open(file_path, "w") as f:
+            json.dump(validated_data.dict(), f, indent=4)
+        
+        return TiktokUploadContent(upload_status="Success")
 
-    authorization_url = 'https://www.tiktok.com/v2/auth/authorize/'
-    authorization_url += f'?client_key={CLIENT_KEY}'
-    authorization_url += f'&scope={",".join(SCOPES)}'
-    authorization_url += '&response_type=code'
-    authorization_url += f'&redirect_uri={REDIRECT_URI}'
-    authorization_url += f'&state={csrf_state}'
-    authorization_url += f'&code_challenge={code_challenge}'
-    authorization_url += '&code_challenge_method=S256'
+    except ValidationError as e:
+        logger.error(f"JSON values are missing or wrong: {e.json()}")
+        raise HTTPException(status_code=422, detail=f"JSON values are missing or wrong")
+    except AttributeError as e:
+            logger.error(f'No valid configuration found in JSON file: {e}')
+            raise HTTPException(status_code=500, detail=f"No valid configuration found in JSON file: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Invalid JSON format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid JSON format")
+    except IOError as e:
+        logger.error(f"File IO Error: {e}")
+        raise HTTPException(status_code=500, detail="File saving failed")
+    except Exception as e:
+        logger.error(f"Unknown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {e}")
+    
+async def setup_tiktok(request):
+    
+    JSON_PATH = "secrets/tiktok/threadtalk.json"
+    if not os.path.exists(JSON_PATH):
+        logger.error("TikTok configuration file not found.")
+        raise HTTPException(status_code=500, detail="TikTok configuration file not found.")
+    
+    try:
+        flow = TikTokTokenData()
+        flow.setup_from_client_secrets_file(JSON_PATH, SCOPES)
+        flow.redirect_uri = request.url_for("tiktok_auth_callback")
+        
+        auth_url = flow.get_authorization_url()
+        return auth_url
 
-    return authorization_url, csrf_state, code_verifier    
-    
-def get_authorization_code(request, client_key)  :
-    authorization_url, csrf_state, code_verifier = get_authorization_url(request, client_key)
-    logger.info(f'Please visit the following URL to authorize your application: {authorization_url}')
-    
-    authorization_data = [csrf_state, code_verifier]
-    TIKTOK_PATH = 'secrets/tiktok/threadtalk.pickle'
-    with open(TIKTOK_PATH, 'wb') as f:
-        pickle.dump(authorization_data, f)
-        
-    return authorization_url
-    
-def get_config():
-    TIKTOK_PATH = 'secrets/tiktok/threadtalk.json'
-    with open(TIKTOK_PATH, 'r') as f:
-        config = json.load(f)
-        
-    return config['auth'] 
-    
-    
-def setup_tiktok(request):
-    config = get_config()
-    
-    client_key = config['client_key']
-    if client_key is not None:
-        logger.info(f'Creating refresh token')
-        response = get_authorization_code(request, client_key)
-        
-        return response
-    else:
-        logger.error(f'Please upload your TikTok json')
-        
+    except Exception as e:
+        logger.error(f"Error in setup_tiktok: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in setup_tiktok: {e}")
+
     
 def save_token_data(token_data):
+    tiktok_token_data = TikTokTokenData(**token_data)
+    
     TIKTOK_PATH = 'secrets/tiktok/threadtalk.pickle'
     with open(TIKTOK_PATH, 'wb') as f:
-        pickle.dump(token_data, f)
+        pickle.dump(tiktok_token_data, f)
 
-def get_access_token(request, code, code_verifier):
-    config = get_config()
-    REDIRECT_URI = request.url_for("tiktok_auth_callback")
     
-    token_url = 'https://open.tiktokapis.com/v2/oauth/token/'
-    params = {
-        'client_key': config['client_key'],
-        'client_secret': config['client_secret'],
-        'code': code,
-        'redirect_uri': REDIRECT_URI,
-        'grant_type': 'authorization_code',
-        'code_verifier': code_verifier,
-    }
-
-    response = requests.post(token_url, data=params)
-    return response.json()   
+async def tiktok_auth_callback(request, code, scopes, state):
+    JSON_PATH = "secrets/tiktok/threadtalk.json"
+    if not os.path.exists(JSON_PATH):
+        logger.error("TikTok configuration file not found.")
+        raise HTTPException(status_code=500, detail="TikTok configuration file not found.")
     
-    
-    
-def tiktok_auth_callback(request, code, scopes, state):
-    TIKTOK_PATH = 'secrets/tiktok/threadtalk.pickle'
-    if not os.path.exists(TIKTOK_PATH):
-        logger.error('No authorization data found. Exiting...')
+    try:
+        flow = TikTokTokenData()
+        flow.setup_from_client_secrets_file(JSON_PATH, SCOPES)
+        flow.redirect_uri = request.url_for("tiktok_auth_callback")
         
-    with open(TIKTOK_PATH, 'rb') as f:
-        authorization_data = pickle.load(f)
-    
-    try: 
-        csrf_state = authorization_data[0]
-        code_verifier = authorization_data[1]
-            
-        if state != csrf_state:
-            logger.error('CSRF state mismatch. Exiting...')
-            return
-
-        token_data = get_access_token(request, code, code_verifier)
-
+        token_data = flow.get_refresh_token(request, code, scopes, state)
         save_token_data(token_data)
-        logger.info('Token data saved')
-    except Exception as e:
-        logger.error(f'Authorization url was expired. Please try again')
+
+    except FileExistsError as e:
+        logger.error(f"Error in setup_tiktok: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in setup_tiktok: {e}")
+    except ValueError as e:
+        logger.error(f"Error in setup_tiktok: {e}")
+        raise HTTPException(status_code=500, detail=f"Error in setup_tiktok: {e}")

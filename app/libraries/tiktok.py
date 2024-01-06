@@ -1,24 +1,24 @@
 from utils.logger import setup_logger, get_logger
 from libraries.setup import tiktok
+from utils.response import TiktokUploadJsonFileResponse, TiktokAuthResponse, TiktokAuthCallbackResponse
 
 setup_logger()
 logger = get_logger()
 
 
-def upload_json(file):
-    logger.info('Uploading json')
-    tiktok.upload_json(file)
-    logger.info('Upload complete.')
+async def upload_json(file) -> TiktokUploadJsonFileResponse:
+    data = await tiktok.upload_json(file)
+
+    return TiktokUploadJsonFileResponse(code=200, data=data)
+
+
+async def setup_tiktok(request) -> TiktokAuthResponse:
+    auth_url = await tiktok.setup_tiktok(request)
     
-    return None
-
-def setup_tiktok(request):
-    logger.info('Setting up TikTok')
-    return tiktok.setup_tiktok(request)
+    return TiktokAuthResponse(code=200, data={'auth_url': auth_url})
 
 
-def tiktok_auth_callback(request, code, scopes, state):
-    tiktok.tiktok_auth_callback(request, code, scopes, state)
+async def tiktok_auth_callback(request, code, scopes, state) -> TiktokAuthCallbackResponse:
+    await tiktok.tiktok_auth_callback(request, code, scopes, state)
     
-    logger.info('TikTok login complete.')
-    return None
+    return TiktokAuthCallbackResponse(code=200, data={'auth_status': 'Success'})
