@@ -9,7 +9,7 @@ from utils.database.schemas import does_reddit_id_exist
 from utils.folders import create_folders
 from utils.data import create_reddit_json, update_reddit_json, check_ongoing, create_json, update_json, create_not_found_json, read_not_found_json
 from config import config
-
+from fastapi import HTTPException
 
 setup_logger()
 logger = get_logger()
@@ -27,36 +27,27 @@ def __get_reddit_client():
         return reddit_client
     except prawcore.exceptions.Forbidden as e:
         logger.error(f"Error creating Reddit client: {e}")
-        raise  # You might want to handle this exception appropriately or log it and continue
+        raise  Exception("Error creating Reddit client. Please check your credentials.")
     
 def __markdown_to_text(markdown_string):
     try:
-        # Convert markdown to HTML
         html = markdown(markdown_string)
-
-        # Remove code snippets
         html = re.sub(r'<pre>(.*?)</pre>', ' ', html)
         html = re.sub(r'<code>(.*?)</code>', ' ', html)
         html = re.sub(r'~~(.*?)~~', ' ', html)
-
-        # Extract text using BeautifulSoup
         soup = BeautifulSoup(html, "html.parser")
         text = ''.join(soup.findAll(text=True))
-
-        # Remove special characters
         text = __remove_special_characters(text)
 
         return text
+    
     except Exception as e:
         logger.error(f"Error converting markdown to text: {e}")
-        raise  # You might want to handle this exception appropriately or log it and continue
+        raise Exception('Error converting markdown to text')
 
 def __remove_special_characters(text):
     try:
-        # Remove ASCII characters
         ascii_removed = re.sub(r'[^\x00-\x7F]+', '', text)
-
-        # Remove emojis
         emoji_pattern = re.compile(
             "["
             "\U0001F600-\U0001F64F"  # Emoticons
@@ -74,23 +65,27 @@ def __remove_special_characters(text):
             flags=re.UNICODE,
         )
         emojis_removed = emoji_pattern.sub(r'', ascii_removed)
-
-        # Remove unwanted text
         unwanted_text_removed = re.sub(r'\\n', ' ', emojis_removed)
-        # Replace line breaks with spaces
         line_breaks_removed = unwanted_text_removed.replace('\n', ' ')
-
         return line_breaks_removed.strip()
+    
     except Exception as e:
         logger.error(f"Error removing special characters: {e}")
-        raise  # You might want to handle this exception appropriately or log it and continue
+        raise Exception('Error removing special characters')
 
 def __profanity_load():
-    # Load profanity data for filtering
-    profanity_data = pd.read_csv("data/profanity_check.csv")
-    profanity_words = set(profanity_data["word"].str.lower())
+    try:
+        profanity_data = pd.read_csv("data/profanity_check.csv")
+        profanity_words = set(profanity_data["word"].str.lower())
 
-    return profanity_words
+        return profanity_words
+    
+    except FileNotFoundError as e:
+        logger.error(f"Error loading profanity words: {e}")
+        raise HTTPException(status_code=500, detail="Error loading profanity words file")
+    except Exception as e:
+        logger.error(f"Error loading profanity words: {e}")
+        raise Exception('Error loading profanity words')
 
 def __get_top_reddit_comment(reddit, post_id: str):
     MIN_COMMENT_WORDS = 5
@@ -108,8 +103,6 @@ def __get_top_reddit_comment(reddit, post_id: str):
             continue
         if any(word in comment.body.lower() for word in profanity_words) or not MIN_COMMENT_WORDS < len(comment.body.split()) < MAX_COMMENT_WORDS:
             continue
-        
-        # pass  if the comments contains a link
         if re.search("(?P<url>https?://[^\s]+)", comment.body):
             continue
             
@@ -129,6 +122,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
     if len(data) == 0:
         create_not_found_json(post_id)
         logger.error("Suitable comment not found. Please try different subreddit or try again.")
+        raise Exception(status_code=500, detail="Suitable comment not found. Please try different subreddit or try again.")
     
     return data
 
@@ -139,19 +133,17 @@ def get_top_reddit_post(subredditName: str):
         logger.info(f"Post {reddit_id} is already in progress. Continuing...")
         return None
     
-    
     profanity_words = __profanity_load()
     
     try:
-        # Get the Reddit client
         reddit = __get_reddit_client()
         subreddit = reddit.subreddit(subredditName)
     except Exception as e:
-        pass
+        logger.error(f"Error getting subreddit: {e}")
+        raise Exception("Error getting subreddit. Please check your subreddit name.")
     
     posts = subreddit.top(time_filter="day", limit=20)
     
-    # Iterate through the posts and filter based on user preferences
     for post in posts:
         reddit_id = post.id
         logger.info(f"Processing post {post.id}... Title: {post.title}")
@@ -192,9 +184,9 @@ def get_top_reddit_post(subredditName: str):
             video_info['title'] = post.title
             video_info['url'] = post.url
             update_json(video_info)
-            return None
+            return video_info
     
     logger.error("Suitable post not found. Please try different subreddit or try again.")
-    return None
+    raise Exception("Suitable post not found. Please try different subreddit or try again")
     
         

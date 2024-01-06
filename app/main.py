@@ -30,7 +30,7 @@ app.include_router(google_routes)
 app.include_router(tiktok_routes)   
 app.include_router(setup_routes)   
 app.include_router(schedule_routes)   
-# app.include_router(video_routes)
+app.include_router(video_routes)
 
 @app.on_event("startup")
 async def startup_event():

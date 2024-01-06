@@ -1,16 +1,31 @@
 import configparser
 import json
 import os
+from fastapi import HTTPException
 
 def load_configuration():
     config = configparser.ConfigParser()
-    config.read('config.ini')
-    STAGE = config.get('Settings', 'STAGE')
-    
-    
+    config_file = 'config.ini'
+
+    if not os.path.exists(config_file):
+        raise HTTPException(status_code=404, detail="Configuration file not found.")
+
+    config.read(config_file)
+    try:
+        STAGE = config.get('Settings', 'STAGE')
+    except configparser.NoOptionError:
+        raise HTTPException(status_code=500, detail="STAGE setting is missing in the configuration.")
+
     FILE_PATH = 'secrets/secrets.json'
-    with open(FILE_PATH, 'r') as config_file:
-        config_data = json.load(config_file)
+    if not os.path.exists(FILE_PATH):
+        raise HTTPException(status_code=404, detail="Secrets file not found.")
+
+    try:
+        with open(FILE_PATH, 'r') as config_file:
+            config_data = json.load(config_file)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Error decoding the secrets file.")
+
 
     configuration = {
         "STAGE": STAGE,
@@ -52,20 +67,27 @@ def set_mode(changed_mode):
 
     config['Settings']['STAGE'] = changed_mode
 
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
+    try:
+        with open(config_file, 'w') as configfile:
+            config.write(configfile)
+    except IOError:
+        raise HTTPException(status_code=500, detail="Error writing to the configuration file.")
 
     return changed_mode
-
 
 def get_mode():
     config = configparser.ConfigParser()
     config_file = 'config.ini'
 
+    if not os.path.exists(config_file):
+        raise HTTPException(status_code=404, detail="Configuration file not found.")
+
     config.read(config_file)
 
-    return config['Settings']['STAGE']
-
+    try:
+        return config['Settings']['STAGE']
+    except KeyError:
+        raise HTTPException(status_code=500, detail="STAGE setting is missing in the configuration.")
 
     
     
