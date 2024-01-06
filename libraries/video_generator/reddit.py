@@ -15,12 +15,6 @@ setup_logger()
 logger = get_logger()
 
 def __get_reddit_client():
-    """
-    Get a Reddit client instance.
-
-    Returns:
-        praw.Reddit: Reddit client instance
-    """
     config_data = config.load_configuration()
 
     try:
@@ -36,15 +30,6 @@ def __get_reddit_client():
         raise  # You might want to handle this exception appropriately or log it and continue
     
 def __markdown_to_text(markdown_string):
-    """
-    Converts a markdown string to plaintext.
-
-    Args:
-        markdown_string (str): Input markdown string.
-
-    Returns:
-        str: Plain text converted from markdown.
-    """
     try:
         # Convert markdown to HTML
         html = markdown(markdown_string)
@@ -67,15 +52,6 @@ def __markdown_to_text(markdown_string):
         raise  # You might want to handle this exception appropriately or log it and continue
 
 def __remove_special_characters(text):
-    """
-    Removes special characters from a text.
-
-    Args:
-        text (str): Input text.
-
-    Returns:
-        str: Text with special characters removed.
-    """
     try:
         # Remove ASCII characters
         ascii_removed = re.sub(r'[^\x00-\x7F]+', '', text)
