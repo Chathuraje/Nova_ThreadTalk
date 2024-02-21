@@ -1,4 +1,4 @@
-from utils.database.schemas import __create_video_data, does_reddit_id_exist, __get_video_by_reddit_id, __get_all_uploaded_videos
+from utils.database.schemas import __create_video_data, does_reddit_id_exist, __get_video_by_reddit_id
 from utils.database.models import VideosCreate
 from utils.data import read_json, check_ongoing, close_the_process
 from utils.time import format_sri_lankan_time
