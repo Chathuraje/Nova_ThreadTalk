@@ -1,4 +1,4 @@
-import praw, prawcore
+import asyncpraw
 import pandas as pd
 from praw.models import MoreComments
 from bs4 import BeautifulSoup
@@ -14,18 +14,18 @@ from fastapi import HTTPException
 setup_logger()
 logger = get_logger()
 
-def __get_reddit_client():
+async def __get_reddit_client():
     config_data = config.load_configuration()
 
     try:
-        reddit_client = praw.Reddit(
+        reddit_client = asyncpraw.Reddit(
             client_id=config_data["REDDIT_CLIENT_ID"],
             client_secret=config_data["REDDIT_CLIENT_SECRET"],
             user_agent=config_data["REDDIT_USER_AGENT"]
         )
         logger.info("Reddit client successfully created.")
         return reddit_client
-    except prawcore.exceptions.Forbidden as e:
+    except asyncpraw.exceptions.Forbidden as e:
         logger.error(f"Error creating Reddit client: {e}")
         raise  Exception("Error creating Reddit client. Please check your credentials.")
     
@@ -87,18 +87,19 @@ def __profanity_load():
         logger.error(f"Error loading profanity words: {e}")
         raise Exception('Error loading profanity words')
 
-def __get_top_reddit_comment(reddit, post_id: str):
+async def __get_top_reddit_comment(reddit, post_id: str):
     MIN_COMMENT_WORDS = 5
     MAX_COMMENT_WORDS = 25 
 
     try:
-        submission = reddit.submission(id=post_id)
+        submission = await reddit.submission(id=post_id)
     except Exception as e:
         logger.error(f"Failed to retrieve submission with ID {post_id}: {e}")
     
     profanity_words = __profanity_load()
     data = []
-    for comment in submission.comments.list():
+    comment_list = submission.comments.list()
+    for comment in comment_list:
         if isinstance(comment, MoreComments) or comment.banned_by or comment.body in ["[removed]", "[deleted]"]:
             continue
         if any(word in comment.body.lower() for word in profanity_words) or not MIN_COMMENT_WORDS < len(comment.body.split()) < MAX_COMMENT_WORDS:
@@ -126,7 +127,7 @@ def __get_top_reddit_comment(reddit, post_id: str):
     
     return data
 
-def get_top_reddit_post(subredditName: str):
+async def get_top_reddit_post(subredditName: str):
     reddit_id = check_ongoing()
     
     if reddit_id != "":
@@ -136,15 +137,13 @@ def get_top_reddit_post(subredditName: str):
     profanity_words = __profanity_load()
     
     try:
-        reddit = __get_reddit_client()
-        subreddit = reddit.subreddit(subredditName)
+        reddit = await __get_reddit_client()
+        subreddit = await reddit.subreddit(subredditName)
     except Exception as e:
         logger.error(f"Error getting subreddit: {e}")
         raise Exception("Error getting subreddit. Please check your subreddit name.")
     
-    posts = subreddit.top(time_filter="day", limit=20)
-    
-    for post in posts:
+    async for post in subreddit.top(time_filter="day", limit=20):
         reddit_id = post.id
         logger.info(f"Processing post {post.id}... Title: {post.title}")
         
@@ -152,7 +151,7 @@ def get_top_reddit_post(subredditName: str):
             logger.info(f"Post {post.id} failed initial filters. Skipping...")
             continue
         
-        if does_reddit_id_exist(post.id):
+        if await does_reddit_id_exist(post.id):
             logger.info(f"Post {post.id} already exists in the database. Skipping...")
             continue
         
@@ -163,7 +162,7 @@ def get_top_reddit_post(subredditName: str):
 
         logger.info(f"Post {post.id} passed initial filters. Processing comments...")
         
-        comment_data = __get_top_reddit_comment(reddit, post.id)
+        comment_data = await __get_top_reddit_comment(reddit, post.id)
         
         if comment_data != []:
             create_folders(post.id)

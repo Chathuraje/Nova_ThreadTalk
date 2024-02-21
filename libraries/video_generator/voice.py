@@ -92,7 +92,7 @@ def __check_is_voice_available(reddit_selected):
     else:
         return False
 
-def generate_voice():
+async def generate_voice():
     reddit_id = check_ongoing()
     reddit_selected = read_json(reddit_id)
     

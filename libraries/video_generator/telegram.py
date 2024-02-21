@@ -55,7 +55,7 @@ def create_message(reddit_details):
     return message
 
 
-def send_telegram_message(data):
+async def send_telegram_message(data):
   
     message = create_message(data)
     send(message)

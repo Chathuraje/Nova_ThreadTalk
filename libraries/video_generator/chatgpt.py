@@ -79,7 +79,7 @@ def __check_if_metatags_exists(reddit):
     
 
 
-def get_meta_data():
+async def get_meta_data():
     reddit_id = check_ongoing()
     reddit_details = read_json(reddit_id)
     

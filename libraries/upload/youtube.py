@@ -80,7 +80,7 @@ def __check_if_video_uploaded(reddit):
 
         return youtube_exists
 
-def upload_to_youtube():
+async def upload_to_youtube():
     reddit_id = check_ongoing()
     reddit_details = read_json(reddit_id)
     

@@ -65,7 +65,7 @@ def __check_if_video_exists(reddit_id, reddit):
     else:
         return False
 
-def make_final_video():
+async def make_final_video():
     VIDEO_LENGTH = 60
     reddit_id = check_ongoing()
     reddit = read_json(reddit_id)

@@ -23,17 +23,6 @@ class VideosBase(BaseModel):
     generated_data: str
     upload_info: Optional[List[UploadInfo]]  # Change to List[UploadInfo]
 
-    @validator("reddit_id", pre=True, always=True)
-    def check_reddit_id(cls, value):
-        video_collection = setup_db()
-        
-        # Ensure that reddit_id is unique
-        if video_collection.find_one({"reddit_id": value}):
-            logger.error(f"Reddit id: {value} already exists in the database.")
-
-        return value
-
-
 class VideosCreate(VideosBase):
     upload_info: Optional[List[UploadInfo]]  # Change to List[UploadInfo]
 
