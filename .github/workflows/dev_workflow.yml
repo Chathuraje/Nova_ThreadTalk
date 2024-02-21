@@ -17,17 +17,17 @@ jobs:
 
     - name: Create and activate virtual environment
       run: |
-        python -m venv .venv
+        python3 -m venv .venv
         source .venv/bin/activate
 
     - name: Install dependencies
       run: |
         source .venv/bin/activate
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip
         # Add other dependencies
         pip install -r requirements.txt
 
     - name: Run main_dev.py
       run: |
         source .venv/bin/activate
-        python main_dev.py
+        python3 main_dev.py
