@@ -51,7 +51,7 @@ async def __login_to_reddit(page):
 async def __launching_browser(playwright):
     try:
         browser = await playwright.chromium.launch(
-            headless=False # headless=False will show the browser for debugging purposes
+            headless=True # headless=False will show the browser for debugging purposes
         )  
         # Device scale factor (or dsf for short) allows us to increase the resolution of the screenshots
         # When the dsf is 1, the width of the screenshot is 600 pixels
