@@ -1,0 +1,15 @@
+[Unit]
+Description=Nova_ThreadTalk FastAPI Application
+After=network.target
+
+[Service]
+User=chathura
+Group=chathura
+WorkingDirectory=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/
+Environment="PATH=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin"
+ExecStart=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin/python3 /home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/main_dev.py
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
