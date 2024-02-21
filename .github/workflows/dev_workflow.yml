@@ -11,15 +11,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    # Manually install Python 3.11.6
-    - name: Install Python 3.11.6
-      run: |
-        sudo apt-get update
-        sudo apt-get install python3.11
-
-    # Set up Python
+    # Set up Python using setup-python@v2
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v2
       with:
         python-version: '3.11.6'
 
