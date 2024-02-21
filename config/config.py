@@ -2,6 +2,7 @@ import configparser
 import json
 import os
 from fastapi import HTTPException
+from pathlib import Path
 
 def load_configuration():
     config = configparser.ConfigParser()
@@ -18,7 +19,48 @@ def load_configuration():
 
     FILE_PATH = 'secrets/secrets.json'
     if not os.path.exists(FILE_PATH):
-        raise HTTPException(status_code=404, detail="Secrets file not found.")
+        Path("secrets/").mkdir(parents=True, exist_ok=True)
+        
+        empty_secrets = {
+            "stage": "PRODUCTION",
+            "reddit": {
+                "client_id": "",
+                "client_secret": "",
+                "user_agent": "",
+                "username": "",
+                "password": ""
+            },
+            "elevenlabs": {
+                "api_keys": []
+            },
+            "mongodb": {
+                "production": {
+                    "url": "",
+                    "username": "",
+                    "password": ""
+                },
+                "development": {
+                    "url": "",
+                    "username": "",
+                    "password": ""
+                }
+            },
+            "openai": {
+                "api_key": ""
+            },
+            "telegram": {
+                "bot_token": "",
+                "production_channel_id": "",
+                "development_channel_id": ""
+            }
+        }
+        
+        # Write the empty secrets structure to the file
+        with open(FILE_PATH, 'w') as file:
+            json.dump(empty_secrets, file, indent=4)
+
+        print(f"Empty JSON file created at {FILE_PATH}")
+        
 
     try:
         with open(FILE_PATH, 'r') as config_file:

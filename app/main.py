@@ -32,10 +32,10 @@ app.include_router(setup_routes)
 app.include_router(schedule_routes)   
 app.include_router(video_routes)
 
-@app.on_event("startup")
-async def startup_event():
-    await setup.initial_setup()
-    await scheduler.add_daily_scheduler()
+# @app.on_event("startup")
+# async def startup_event():
+#     await setup.initial_setup()
+#     await scheduler.add_daily_scheduler()
 
 @app.exception_handler(HTTPException)
 def http_exception_handler(request, exc):
