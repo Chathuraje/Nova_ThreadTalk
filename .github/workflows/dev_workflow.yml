@@ -27,7 +27,11 @@ jobs:
         # Add other dependencies
         pip install -r requirements.txt
 
-    - name: Run main_dev.py
+    # - name: Run main_dev.py
+    #   run: |
+    #     source .venv/bin/activate
+    #     python3 main_dev.py
+
+    - name: Run FastAPI application
       run: |
-        source .venv/bin/activate
-        python3 main_dev.py
+          uvicorn main:app --host 0.0.0.0 --port 1234
