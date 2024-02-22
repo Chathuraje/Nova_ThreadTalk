@@ -22,3 +22,9 @@ async def tiktok_auth_callback(request, code, scopes, state) -> TiktokAuthCallba
     await tiktok.tiktok_auth_callback(request, code, scopes, state)
     
     return TiktokAuthCallbackResponse(code=200, data={'auth_status': 'Success'})
+
+
+async def upload_pickle_file(request, file) -> TiktokUploadJsonFileResponse:
+    data = await tiktok.upload_pickle_file(request, file)
+    
+    return TiktokUploadJsonFileResponse(code=200, data=data)

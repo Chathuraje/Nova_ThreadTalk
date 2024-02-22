@@ -114,3 +114,24 @@ async def tiktok_auth_callback(request, code, scopes, state):
     except ValueError as e:
         logger.error(f"Error in setup_tiktok: {e}")
         raise HTTPException(status_code=500, detail=f"Error in setup_tiktok: {e}")
+    
+    
+    
+async def upload_pickle_file(request, file) -> TiktokUploadContent:
+    if file.content_type != 'application/octet-stream':
+        logger.error('Invalid file type, only pickle files are allowed.')
+        raise HTTPException(status_code=400, detail='Invalid file type, only pickle files are allowed.')
+    
+    try:
+        content = await file.read()
+        pickle_file_path = 'secrets/tiktok/threadtalk.pickle'
+        with open(pickle_file_path, "wb") as f:
+            f.write(content)
+        
+        return TiktokUploadContent(upload_status="Success")
+    except IOError as e:
+        logger.error(f"File IO Error: {e}")
+        raise HTTPException(status_code=500, detail="File saving failed")
+    except Exception as e:
+        logger.error(f"Unknown error: {e}")
+        raise HTTPException(status_code=500, detail=f"Unknown error: {e}")

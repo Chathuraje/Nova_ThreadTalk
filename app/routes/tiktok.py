@@ -11,7 +11,7 @@ logger = get_logger()
 
 router = APIRouter(
     tags=['TikTok'],
-    # prefix='/tiktok'
+    prefix='/tiktok'
 )
 
 @router.post('/tiktok_upload-json-file', response_model=TiktokUploadJsonFileResponse)
@@ -28,3 +28,8 @@ async def setup_tiktok(request: Request):
 async def tiktok_auth_callback(request: Request, code: str, scopes: str, state: str):
     logger.info("tiktok_auth_callback endpoint accessed.")
     return await tiktok.tiktok_auth_callback(request, code, scopes, state)
+
+@router.post('/upload_pickle_file', response_model=TiktokUploadJsonFileResponse)
+async def upload_pickle_file(request: Request, file: UploadFile = File(...)):
+    logger.info('upload pickle endpoint accessed.')
+    return await tiktok.upload_pickle_file(request, file)

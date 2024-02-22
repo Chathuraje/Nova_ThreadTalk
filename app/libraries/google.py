@@ -19,3 +19,8 @@ async def google_callback(request, code) -> GoogleAuthCallbackResponse:
     await google.google_callback(request, code)
     
     return GoogleAuthCallbackResponse(code=200, data={'auth_status': 'Success'})
+
+async def upload_pickle_file(request, file) -> GoogleUploadJsonFileResponse:
+    data = await google.upload_pickle_file(request, file)
+    
+    return GoogleUploadJsonFileResponse(code=200, data=data)
