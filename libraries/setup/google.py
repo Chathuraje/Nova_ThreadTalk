@@ -25,7 +25,8 @@ class GoogleClientConfig(BaseModel):
     token_uri: str
     auth_provider_x509_cert_url: str
     client_secret: str
-    redirect_uris: List[str]
+    redirect_uris: Optional[List[str]] = None
+    javascript_origins: Optional[List[str]] = None
 
 class GoogleConfigInstalled(BaseModel):
     installed: Optional[GoogleClientConfig]
