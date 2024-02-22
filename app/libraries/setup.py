@@ -7,6 +7,7 @@ import pytz
 from libraries.setup import db
 from utils.response import UploadJsonFileResponse, InitialSetupResponse, ViewScheduledVideo
 from apscheduler.schedulers.background import BackgroundScheduler
+from utils import scheduler
 
 setup_logger()
 logger = get_logger()
@@ -17,7 +18,7 @@ async def upload_json(file) -> UploadJsonFileResponse:
     
     return UploadJsonFileResponse(code=200, data=data)
 
-async def initial_setup() -> InitialSetupResponse:
+async def initial_setup() -> InitialSetupResponse:    
     db_setup = False
     db_connect = await db.setup_db()
     if db_connect is not None:

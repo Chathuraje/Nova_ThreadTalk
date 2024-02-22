@@ -18,5 +18,6 @@ async def daily_tasks():
 async def add_daily_scheduler():
     Appscheduler = AsyncIOScheduler()
     Appscheduler.start()
-
+    await daily_tasks()
+    
     Appscheduler.add_job(daily_tasks, 'cron', hour=0, minute=0, timezone=timezone('Asia/Colombo'))

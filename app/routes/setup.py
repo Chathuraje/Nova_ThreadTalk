@@ -3,6 +3,7 @@ from utils.logger import setup_logger, get_logger
 from app.libraries import setup
 from fastapi import File, UploadFile, Request
 from utils.response import UploadJsonFileResponse, InitialSetupResponse
+from utils import scheduler
 
 
 setup_logger()
@@ -22,4 +23,4 @@ async def upload_json(file: UploadFile = File(...)):
 @router.get("/initial_setup", response_model=InitialSetupResponse)
 async def initial_setup():
     logger.info('initial setup endpoint accessed.')
-    return await setup.initial_setup()
+    return await scheduler.add_daily_scheduler()
