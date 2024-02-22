@@ -134,7 +134,7 @@ async def google_callback(request, code):
 
             
         flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
-        flow.redirect_uri = request.url_for("google_auth_callback")
+        flow.redirect_uri = f"https://{request.headers['host']}/google/auth_callback"
         flow.fetch_token(code=code)
 
         creds = flow.credentials
