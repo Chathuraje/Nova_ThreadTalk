@@ -62,6 +62,7 @@ async def __launching_browser(playwright):
             color_scheme="dark",
             viewport=ViewportSize(width=SCREENSHOT_WIDTH, height=SCREENSHOT_HEIGHT),
             device_scale_factor=dsf,
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36"
         )
         try:
             cookie_file = open("config/reddit_cookie-light-mode.json", encoding="utf-8")
