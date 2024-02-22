@@ -5,10 +5,11 @@ After=network.target
 [Service]
 User=chathura
 Group=chathura
-WorkingDirectory=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/
-Environment="PATH=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+WorkingDirectory=/home/chathura/Nove_ThreadTalk/production/_work/Nova_ThreadTalk/Nova_ThreadTalk/
+Environment="PATH=/home/chathura/Nove_ThreadTalk/production/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="PLAYWRIGHT_BROWSERS_PATH=/home/chathura/.cache/ms-playwright/"
-ExecStart=/home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin/python3 /home/chathura/Nove_ThreadTalk/development/_work/Nova_ThreadTalk/Nova_Thread>
+ExecStart=/home/chathura/Nove_ThreadTalk/production/_work/Nova_ThreadTalk/Nova_ThreadTalk/.venv/bin/python3 /home/chathura/Nove_ThreadTalk/production/_work/Nova_ThreadTalk/Nova_ThreadTalk/main.py
+
 Restart=always
 
 [Install]

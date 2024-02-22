@@ -27,6 +27,11 @@ jobs:
         # Add other dependencies
         pip install -r requirements.txt
 
+    - name: Install Playwright for Python
+      run: |
+          source .venv/bin/activate
+          playwright install
+
     # - name: Copy service file and reload systemd daemon
     #   run: |
     #     sudo cp nova_threadtalk_dev.service /etc/systemd/system/
