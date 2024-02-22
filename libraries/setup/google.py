@@ -92,7 +92,7 @@ async def setup_google(request) -> GoogleAuthContent:
             raise AttributeError("No valid 'web' or 'installed' configuration found in JSON file.")
         
         flow = InstalledAppFlow.from_client_secrets_file(JSON_PATH, scopes=SCOPES)
-        flow.redirect_uri = request.url_for("google_auth_callback")
+        flow.redirect_uri = f"https://{request.headers['host']}/google/auth_callback"
         auth_url, _ = flow.authorization_url(prompt='consent')
         logger.info(f'Please go to this URL: {auth_url}')
         return auth_url
