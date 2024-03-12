@@ -50,13 +50,18 @@ async def __login_to_reddit(page):
     
 async def __launching_browser(playwright):
     try:
+        useragent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36"
         browser = await playwright.chromium.launch(
-            headless=True # headless=False will show the browser for debugging purposes
+            headless=True,
+            args=[
+                f'--user-agent={useragent}',
+            ]
         )  
         # Device scale factor (or dsf for short) allows us to increase the resolution of the screenshots
         # When the dsf is 1, the width of the screenshot is 600 pixels
         # so we need a dsf such that the width of the screenshot is greater than the final resolution of the video
         dsf = (SCREENSHOT_WIDTH // 600) + 1
+        
         context = await browser.new_context(
             locale= "en-us",
             color_scheme="dark",
